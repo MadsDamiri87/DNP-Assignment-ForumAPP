@@ -1,6 +1,6 @@
 ﻿namespace Entities;
 
-public class Post
+public class Post : IEntity
 {
     public int Id {get; set;}
     public int SubforumId {get; set;}

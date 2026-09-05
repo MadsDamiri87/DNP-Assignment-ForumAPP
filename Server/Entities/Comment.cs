@@ -1,6 +1,6 @@
 ﻿namespace Entities;
 
-public class Comment
+public class Comment : IEntity
 {
     public int Id {get; set;}
     public int PostId {get; set;}

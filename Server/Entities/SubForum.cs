@@ -1,6 +1,6 @@
 ﻿namespace Entities;
 
-public class SubForum
+public class SubForum : IEntity
 {
     public int Id {get; set;}
     public string SubForumName {get; set;}
