@@ -8,7 +8,7 @@ I denne assignment er fokus på domænemodellen, entities og repository-laget. A
 ## Domænemodel
 Domænemodellen viser de centrale entities i systemet og relationerne mellem dem.
 
-![Domænemodel for forum app](../../../Astah/DNP%20SVG/DNP-ForumAPP-DomainModel.svg)
+![DNP-ForumAPP-DomainModel V1.svg](docs/diagrams/DNP-ForumAPP-DomainModel%20V1.svg)
 
 ## Projektets formål
 Formålet med denne assignment er at give den studerende (mig) et modulært .NET-projekt, samt får en forståelse af C# og forskellighederne mellem dét og Java. Derudover er hensigten også at vi får erfaringer med andre sprog og måder hvorpå de kan interagere med hinanden.
