@@ -6,8 +6,8 @@ public class Post : IEntity
     public int SubForumId {get; set;}
     public int UserId {get; set;}
     
-    public string Title {get; set;}
-    public string Body {get; set;}
+    public required string Title {get; set;}
+    public required string Body {get; set;}
     
     
     

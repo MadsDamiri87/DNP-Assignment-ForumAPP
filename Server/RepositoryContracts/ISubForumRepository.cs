@@ -2,11 +2,7 @@
 
 namespace RepositoryContracts;
 
-public interface ISubForumRepository
+public interface ISubForumRepository : IRepository<SubForum>
 {
-    Task<SubForum> AddAsync(SubForum subForum);
-    Task UpdateAsync(SubForum subForum);
-    Task DeleteAsync(int id);
-    Task<SubForum> GetSingleAsync(int id);
-    IQueryable<SubForum> GetManyAsync();
+
 }

@@ -1,10 +1,11 @@
 ﻿using Entities;
+using RepositoryContracts;
 
 namespace InMemoryRepositories;
 
-public abstract class RepositoryBase<T> where T : IEntity
+public abstract class RepositoryBase<T> : IRepository<T> where T : IEntity
 {
-    protected readonly List<T> entities = new();
+    private readonly List<T> entities = new();
     
     public Task<T> AddAsync(T entity)
     {
@@ -22,7 +23,7 @@ public abstract class RepositoryBase<T> where T : IEntity
         if (existingEntity is null)
         {
             throw new InvalidOperationException(
-                $"The post with id: {entity.Id} was not found.");
+                $"The {typeof(T).Name} with id: {entity.Id} was not found.");
             
         }
         entities.Remove(existingEntity);
@@ -39,7 +40,7 @@ public abstract class RepositoryBase<T> where T : IEntity
         if (entityToRemove is null)
         {
             throw new InvalidOperationException(
-                $"Entity with id: {id} was not found.");
+                $"The {typeof(T).Name} with id: {id} was not found.");
         }
         
         entities.Remove(entityToRemove);
@@ -54,7 +55,7 @@ public abstract class RepositoryBase<T> where T : IEntity
         if (existingEntity is null)
         {
             throw new InvalidOperationException(
-                $"The post with id: {id} was not found.");            
+                $"The {typeof(T).Name} with id: {id} was not found.");            
         }
         
         return Task.FromResult(existingEntity);
