@@ -1,6 +1,7 @@
 ﻿using Entities;
+using RepositoryContracts;
 
-namespace RepositoryContracts;
+namespace InMemoryRepositories;
 
 public class DataSeeder
 {
@@ -43,14 +44,16 @@ public class DataSeeder
 
         SubForum programming = await subForumRepository.AddAsync(new SubForum
         {
-            SubForumName = "Programming",
+            Name = "Programming",
+            Description = "News on .NET",
             CreatorUserId = user1.Id,
             DateCreated = DateTime.Now.AddMonths(-2)
         });
 
         SubForum gaming = await subForumRepository.AddAsync(new SubForum
             {
-                SubForumName = "Gaming",
+                Name = "Gaming",
+                Description = "Aimbot",
                 CreatorUserId = user2.Id,
                 DateCreated = DateTime.Now.AddMonths(-1)
             }
@@ -58,8 +61,8 @@ public class DataSeeder
 
         Post post1 = await postRepository.AddAsync(new Post
         {
-            Id = 1,
-            UserId = 1,
+            UserId = user1.Id,
+            SubForumId = programming.Id,
             Title = "How does async work?",
             Body = "I am trying to understand async and Task in C#."
         });

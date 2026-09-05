@@ -31,11 +31,13 @@ DNP-Assignment-ForumAPP/
     │   ├── SubForum.cs
     │   └── User.cs
     ├── RepositoryContracts/
+    │   ├── IRepository.cs
     │   ├── ICommentRepository.cs
     │   ├── IPostRepository.cs
     │   ├── ISubForumRepository.cs
     │   └── IUserRepository.cs
     └── InMemoryRepositories/
+        ├── DataSeeder.cs
         ├── CommentInMemoryRepository.cs
         ├── PostInMemoryRepository.cs
         ├── RepositoryBase.cs
@@ -85,7 +87,7 @@ Den fælles klasse `RepositoryBase<T>` indeholder den generelle CRUD-logik:
 - En enkelt entity kan hentes med `GetSingleAsync`.
 - Flere entities kan hentes som `IQueryable<T>` med `GetManyAsync`.
 
-De konkrete repositories indeholder også dummydata, så der er brugere, subforums, posts og kommentarer at arbejde med fra starten.
+Dummy data findes i DataSeeder.cs, så der er brugere, subforums, posts og kommentarer at arbejde med fra starten.
 
 ## Teknologier
 
@@ -104,7 +106,7 @@ Implementeret:
 - Fælles `IEntity` interface
 - Repository contracts for alle entities
 - In-memory repository implementationer
-- Dummydata i repositories
+- Dummydata i klassen DataSeeder
 - Domænemodel inkluderet i README
 
 Ikke implementeret endnu:

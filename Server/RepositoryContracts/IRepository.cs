@@ -1,6 +1,8 @@
-﻿namespace RepositoryContracts;
+﻿using Entities;
 
-public interface IRepository<T>
+namespace RepositoryContracts;
+
+public interface IRepository<T>  where T : IEntity
 {
     Task<T> AddAsync(T entity);
     Task UpdateAsync(T entity);
