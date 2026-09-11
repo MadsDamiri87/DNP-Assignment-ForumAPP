@@ -4,11 +4,15 @@ namespace CLI.UI.ManagePosts;
 
 public class ManagePostView
 {
-    private readonly IPostRepository postRepository;
+    private CreatePostView createPostView;
+    private ListPostView listPostView;
+    private SinglePostView singlePostView;
 
-    public ManagePostView(IPostRepository postRepository)
+    public ManagePostView(CreatePostView createPostView,  ListPostView listPostView, SinglePostView singlePostView)
     {
-        this.postRepository = postRepository;
+        this.createPostView = createPostView;
+        this.listPostView = listPostView;
+        this.singlePostView = singlePostView;
     }
 
     public async Task StartAsync()
@@ -29,12 +33,22 @@ public class ManagePostView
             if (choice == "1")
             {
                 Console.WriteLine("Create post selected");
+                await createPostView.CreatePostAsync();
+                
             }
             else if (choice == "2")
             {
                 Console.WriteLine("List post selected");
+                await listPostView.ShowPostsAsync();
             }
+            
             else if (choice == "3")
+            {
+                Console.WriteLine("View Post");
+                await singlePostView.ShowPostAsync();
+            }
+            
+            else if (choice == "4")
             {
                 running = false;
             }

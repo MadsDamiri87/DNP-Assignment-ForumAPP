@@ -4,11 +4,13 @@ namespace CLI.UI.ManageUsers;
 
 public class ManageUsersView
 {
-    private readonly IUserRepository _userRepository;
+    private CreateUserView createUserView;
+    private ListUsersView listUsersView;
 
-    public ManageUsersView(IUserRepository userRepository)
+    public ManageUsersView(CreateUserView createUserView, ListUsersView listUsersView)
     {
-        _userRepository = userRepository;
+        this.createUserView = createUserView;
+        this.listUsersView = listUsersView;
     }
 
     public async Task StartAsync()
@@ -29,10 +31,12 @@ public class ManageUsersView
             if (choice == "1")
             {
                 Console.WriteLine("Create user selected");
+                await createUserView.CreateUserAsync();
             }
             else if (choice == "2")
             {
                 Console.WriteLine("List users selected");
+                await listUsersView.ShowUsersAsync();
             }
             else if (choice == "3")
             {
