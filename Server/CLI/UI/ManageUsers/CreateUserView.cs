@@ -18,7 +18,6 @@ public class CreateUserView
         
         if (!userExists)
         {
-            Console.WriteLine($"User with id {userName} not found");
             return false;
         }
 
@@ -35,15 +34,25 @@ public class CreateUserView
     
     public async Task CreateUserAsync()
     {
-        Console.WriteLine("Type in new User ID: ");
-        string userId = Console.ReadLine()?.Trim() ?? "";
+        Console.WriteLine("Create user selected");
 
         Console.WriteLine("Type in UserName: ");
         string inputUserName = Console.ReadLine()?.Trim() ?? "";
         
+        Console.WriteLine("Type in Password: ");
+        string inputPassword = Console.ReadLine()?.Trim() ?? "";
+
         Console.WriteLine("Type in Email: ");
         string inputEmail = Console.ReadLine()?.Trim() ?? "";
         
+        if (string.IsNullOrWhiteSpace(inputUserName)
+            || string.IsNullOrWhiteSpace(inputPassword)
+            || string.IsNullOrWhiteSpace(inputEmail))
+        {
+            Console.WriteLine("UserName, password and email are required");
+            return;
+        }
+
         if (UserNameExists(inputUserName))
         {
             Console.WriteLine($"Username: '{inputUserName}' already exists");
@@ -53,23 +62,20 @@ public class CreateUserView
         if (EmailExists(inputEmail))
         {
             Console.WriteLine($"Email: '{inputEmail}' already exists");
+            return;
         }
         
-        
-        if (!int.TryParse(userId, out int id))
-        {
-            
-        }
 
         User newUser = new User
         {
-            Id = 0,
-            UserName = null,
-            PasswordHash = null,
-            Email = null,
-            CreatedDate = default
+            UserName = inputUserName,
+            PasswordHash = inputPassword,
+            Email = inputEmail,
+            CreatedDate = DateTime.Now
         };
         
-
+        User createdUser = await userRepository.AddAsync(newUser);
+        
+        Console.WriteLine($"User created with id: {createdUser.Id}");
     }
 }

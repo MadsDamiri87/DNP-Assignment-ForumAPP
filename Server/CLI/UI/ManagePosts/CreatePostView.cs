@@ -21,7 +21,6 @@ public class CreatePostView
         
         if (!userExists)
         {
-            Console.WriteLine($"User with id {userId} not found");
             return false;
         }
 
@@ -30,6 +29,8 @@ public class CreatePostView
 
     public async Task CreatePostAsync()
     {
+        Console.WriteLine("Create post selected");
+        
         Console.Write("Title: ");
         string title = Console.ReadLine()?.Trim() ?? "";
 
@@ -40,15 +41,21 @@ public class CreatePostView
         string userIdInput = Console.ReadLine()?.Trim() ?? "";
         
         
+        if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(body))
+        {
+            Console.WriteLine("Title and body are required");
+            return;
+        }
+
         if (!int.TryParse(userIdInput, out int userId))
         {
             Console.WriteLine("Invalid User ID");
             return;
         }
 
-        if (CheckUserExists(userId))
+        if (!CheckUserExists(userId))
         {
-            Console.WriteLine($"User with id '{userId}' don't exists");
+            Console.WriteLine($"User with id '{userId}' doesn't exist");
             return;
         }
         

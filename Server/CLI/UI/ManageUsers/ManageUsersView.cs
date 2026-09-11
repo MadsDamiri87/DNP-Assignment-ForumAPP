@@ -26,16 +26,21 @@ public class ManageUsersView
             Console.WriteLine("3. Back");
             Console.Write("Choose an option: ");
 
-            string choice = Console.ReadLine()?.Trim() ?? "";
+            string? input = Console.ReadLine();
+            if (input is null)
+            {
+                running = false;
+                continue;
+            }
+
+            string choice = input.Trim();
 
             if (choice == "1")
             {
-                Console.WriteLine("Create user selected");
                 await createUserView.CreateUserAsync();
             }
             else if (choice == "2")
             {
-                Console.WriteLine("List users selected");
                 await listUsersView.ShowUsersAsync();
             }
             else if (choice == "3")

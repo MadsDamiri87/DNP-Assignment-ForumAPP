@@ -25,9 +25,16 @@ public class CliApp
             Console.WriteLine("1. Manage Users ");
             Console.WriteLine("2. Manage Posts ");
             Console.WriteLine("3. Exit \n");
-            Console.WriteLine("Chose which one to manage:");
+            Console.WriteLine("Choose which one to manage:");
             
-            string choice = Console.ReadLine()?.Trim() ?? "";
+            string? input = Console.ReadLine();
+            if (input is null)
+            {
+                running = false;
+                continue;
+            }
+
+            string choice = input.Trim();
             
             if  (choice == "1")
             {
@@ -39,7 +46,7 @@ public class CliApp
             }
             else if (choice == "3")
             {
-                Console.Write("You have chosen to exit:");
+                Console.WriteLine("You have chosen to exit.");
                 running = false;
             }
             else

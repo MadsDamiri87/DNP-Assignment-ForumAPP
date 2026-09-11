@@ -14,6 +14,8 @@ public class ListUsersView
 
     public Task ShowUsersAsync()
     {
+        Console.WriteLine("List users selected");
+        
         IQueryable<User> users = userRepository.GetManyAsync();
 
         foreach (var user in users)

@@ -25,26 +25,31 @@ public class ManagePostView
             Console.WriteLine("Manage Posts");
             Console.WriteLine("1. Create Post");
             Console.WriteLine("2. List Post");
-            Console.WriteLine("3. Back");
+            Console.WriteLine("3. View Post");
+            Console.WriteLine("4. Back");
             Console.Write("Choose an option: ");
 
-            string choice = Console.ReadLine()?.Trim() ?? "";
+            string? input = Console.ReadLine();
+            if (input is null)
+            {
+                running = false;
+                continue;
+            }
+
+            string choice = input.Trim();
 
             if (choice == "1")
             {
-                Console.WriteLine("Create post selected");
                 await createPostView.CreatePostAsync();
                 
             }
             else if (choice == "2")
             {
-                Console.WriteLine("List post selected");
                 await listPostView.ShowPostsAsync();
             }
             
             else if (choice == "3")
             {
-                Console.WriteLine("View Post");
                 await singlePostView.ShowPostAsync();
             }
             

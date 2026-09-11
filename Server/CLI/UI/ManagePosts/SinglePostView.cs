@@ -18,12 +18,20 @@ public class SinglePostView
 
     public async Task ShowPostAsync()
     {
+        Console.WriteLine("View Post selected");
+        
         Console.Write("Enter ID: ");
         string postId = Console.ReadLine()?.Trim() ?? "";
 
         if (!int.TryParse(postId, out int id))
         {
-            Console.Write("Invalid ID: ");
+            Console.WriteLine("Invalid ID");
+            return;
+        }
+
+        if (!postRepository.GetManyAsync().Any(post => post.Id == id))
+        {
+            Console.WriteLine($"Post with id '{id}' doesn't exist");
             return;
         }
 

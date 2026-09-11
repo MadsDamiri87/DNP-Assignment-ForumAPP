@@ -13,6 +13,8 @@ public class ListPostView
 
     public Task ShowPostsAsync()
     {
+        Console.WriteLine("List post selected");
+        
         IQueryable<Entities.Post> posts = postRepository.GetManyAsync();
 
         foreach (var post in posts)

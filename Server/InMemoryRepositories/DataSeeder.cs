@@ -42,6 +42,14 @@ public class DataSeeder
             CreatedDate = DateTime.Now.AddMonths(-8)
         });
 
+        User user3 = await userRepository.AddAsync(new User
+        {
+            UserName = "user3",
+            PasswordHash = "hash3",
+            Email = "anna@examp.dk",
+            CreatedDate = DateTime.Now.AddMonths(-1)
+        });
+
         SubForum programming = await subForumRepository.AddAsync(new SubForum
         {
             Name = "Programming",
@@ -59,6 +67,14 @@ public class DataSeeder
             }
         );
 
+        SubForum movies = await subForumRepository.AddAsync(new SubForum
+        {
+            Name = "Movies",
+            Description = "Reviews and recommendations",
+            CreatorUserId = user3.Id,
+            DateCreated = DateTime.Now.AddDays(-14)
+        });
+
         Post post1 = await postRepository.AddAsync(new Post
         {
             UserId = user1.Id,
@@ -72,6 +88,14 @@ public class DataSeeder
             SubForumId = gaming.Id,
             Title = "Favorite game?",
             Body = "What game are you playing right now?"
+        });
+
+        Post post3 = await postRepository.AddAsync(new Post
+        {
+            UserId = user3.Id,
+            SubForumId = movies.Id,
+            Title = "Best movie this year?",
+            Body = "Looking for recommendations for the weekend."
         });
         
         await commentRepository.AddAsync(new Comment
@@ -88,6 +112,14 @@ public class DataSeeder
             UserId = user1.Id,
             Body = "I am playing Baldur's Gate 3 right now.",
             Date = DateTime.Now.AddDays(0)
+        });
+
+        await commentRepository.AddAsync(new Comment
+        {
+            PostId = post3.Id,
+            UserId = user2.Id,
+            Body = "Dune: Part Two, easily.",
+            Date = DateTime.Now
         });
     }
 }
