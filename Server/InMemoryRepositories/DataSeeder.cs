@@ -30,7 +30,7 @@ public class DataSeeder
             UserName = "user1",
             PasswordHash =  "hash1",
             Email = "mads@examp.dk",
-            CreatedDate =  DateTime.Now.AddMonths(-3)
+            CreatedAt =  DateTime.Now.AddMonths(-3)
         });
 
         User user2 = await userRepository.AddAsync(new User
@@ -39,7 +39,7 @@ public class DataSeeder
             UserName = "user2",
             PasswordHash =  "hash2",
             Email = "peter@examp.dk",
-            CreatedDate = DateTime.Now.AddMonths(-8)
+            CreatedAt = DateTime.Now.AddMonths(-8)
         });
 
         User user3 = await userRepository.AddAsync(new User
@@ -47,7 +47,7 @@ public class DataSeeder
             UserName = "user3",
             PasswordHash = "hash3",
             Email = "anna@examp.dk",
-            CreatedDate = DateTime.Now.AddMonths(-1)
+            CreatedAt = DateTime.Now.AddMonths(-1)
         });
 
         SubForum programming = await subForumRepository.AddAsync(new SubForum
@@ -55,7 +55,7 @@ public class DataSeeder
             Name = "Programming",
             Description = "News on .NET",
             CreatorUserId = user1.Id,
-            DateCreated = DateTime.Now.AddMonths(-2)
+            CreatedAt = DateTime.Now.AddMonths(-2)
         });
 
         SubForum gaming = await subForumRepository.AddAsync(new SubForum
@@ -63,7 +63,7 @@ public class DataSeeder
                 Name = "Gaming",
                 Description = "Aimbot",
                 CreatorUserId = user2.Id,
-                DateCreated = DateTime.Now.AddMonths(-1)
+                CreatedAt = DateTime.Now.AddMonths(-1)
             }
         );
 
@@ -72,7 +72,7 @@ public class DataSeeder
             Name = "Movies",
             Description = "Reviews and recommendations",
             CreatorUserId = user3.Id,
-            DateCreated = DateTime.Now.AddDays(-14)
+            CreatedAt = DateTime.Now.AddDays(-14)
         });
 
         Post post1 = await postRepository.AddAsync(new Post
@@ -80,14 +80,16 @@ public class DataSeeder
             UserId = user1.Id,
             SubForumId = programming.Id,
             Title = "How does async work?",
-            Body = "I am trying to understand async and Task in C#."
+            Body = "I am trying to understand async and Task in C#.",
+            CreatedAt =  DateTime.Now
         });
         Post post2 = await postRepository.AddAsync(new Post
         {
             UserId = user2.Id,
             SubForumId = gaming.Id,
             Title = "Favorite game?",
-            Body = "What game are you playing right now?"
+            Body = "What game are you playing right now?",
+            CreatedAt =  DateTime.Now
         });
 
         Post post3 = await postRepository.AddAsync(new Post
@@ -95,7 +97,8 @@ public class DataSeeder
             UserId = user3.Id,
             SubForumId = movies.Id,
             Title = "Best movie this year?",
-            Body = "Looking for recommendations for the weekend."
+            Body = "Looking for recommendations for the weekend.",
+            CreatedAt =  DateTime.Now
         });
         
         await commentRepository.AddAsync(new Comment
@@ -103,7 +106,7 @@ public class DataSeeder
             PostId = post1.Id,
             UserId = user2.Id,
             Body = "Task represents work that may complete later.",
-            Date = DateTime.Now.AddDays(0)
+            CreatedAt = DateTime.Now.AddDays(0)
         });
 
         await commentRepository.AddAsync(new Comment
@@ -111,7 +114,7 @@ public class DataSeeder
             PostId = post2.Id,
             UserId = user1.Id,
             Body = "I am playing Baldur's Gate 3 right now.",
-            Date = DateTime.Now.AddDays(0)
+            CreatedAt = DateTime.Now.AddDays(0)
         });
 
         await commentRepository.AddAsync(new Comment
@@ -119,7 +122,7 @@ public class DataSeeder
             PostId = post3.Id,
             UserId = user2.Id,
             Body = "Dune: Part Two, easily.",
-            Date = DateTime.Now
+            CreatedAt = DateTime.Now
         });
     }
 }

@@ -6,9 +6,6 @@ public class Comment : IEntity
     public int PostId {get; set;}
     public int UserId {get; set;}
     public required string Body {get; set;}
-    public DateTime Date {get; set;}
-    
-    
-    
+    public DateTime CreatedAt {get; set;}
     
 }

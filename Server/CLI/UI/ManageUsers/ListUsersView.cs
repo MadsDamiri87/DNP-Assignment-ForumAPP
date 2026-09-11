@@ -23,7 +23,7 @@ public class ListUsersView
             Console.WriteLine($"UserName: {user.UserName}");
             Console.WriteLine($"UserID: {user.Id}");
             Console.WriteLine($"Email: {user.Email}");
-            Console.WriteLine($"Created: {user.CreatedDate}");
+            Console.WriteLine($"Created: {user.CreatedAt}");
             
         }
         return Task.CompletedTask;
