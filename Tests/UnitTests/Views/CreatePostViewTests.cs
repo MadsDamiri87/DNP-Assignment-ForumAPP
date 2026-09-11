@@ -6,20 +6,7 @@ using Xunit;
 
 namespace Tests.UnitTests.Views;
 
-// Unit tests of CreatePostView. The repositories are fakes, so only the view's own logic is tested.
-// Black-box: designed from the Assignment 2 requirement "Create new post (title, body, user id)".
-// Test names: Should<Result>_When<Condition>.
-//
-// Title and Body - required text with no maximum length, i.e. the half-open range [1, ∞) characters:
-//   Partition (EP)          | Representative   | BVA values               | Expected
-//   blank                   | "   "            | "" (0 chars), " " (1)    | reject
-//   at least one character  | "A normal title" | "a" (1 char), "ab" (2)   | accept
-//
-// User id - existing users are 1..3:
-//   Partition (EP)          | Representative   | BVA values               | Expected
-//   not a whole number      | "abc", "", "1.5" | "2147483648" (int.Max+1) | reject: invalid id
-//   number, no such user    | "-5", "100"      | "0", "4", "2147483647"   | reject: unknown user
-//   number, existing user   | "2"              | "1", "3"                 | accept
+
 [Collection(ConsoleCollection.Name)]
 public class CreatePostViewTests
 {

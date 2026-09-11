@@ -6,21 +6,7 @@ using Xunit;
 
 namespace Tests.UnitTests.Views;
 
-// Unit tests of CreateUserView with a fake user repository.
-// Black-box: designed from the Assignment 2 requirement "Create new user (user name, password, etc)"
-// and its optional business rule "When creating a user, is the username already taken?".
-// Test names: Should<Result>_When<Condition>.
-//
-// UserName, Password and Email - required text with no maximum length:
-//   Partition (EP)          | Representative | BVA values             | Expected
-//   blank                   | "   "          | "" (0 chars), " " (1)  | reject
-//   at least one character  | "mads"         | "a" (1 character)      | accept
-//
-// Uniqueness - an existing user has user name "user1" and email "user1@x.dk":
-//   Partition (EP)          | Representative | Expected
-//   user name already taken | "user1"        | reject
-//   email already taken     | "user1@x.dk"   | reject
-//   both are free           | "mads"         | accept
+
 [Collection(ConsoleCollection.Name)]
 public class CreateUserViewTests
 {

@@ -4,9 +4,6 @@ using Xunit;
 
 namespace Tests.UnitTests.Repositories;
 
-// Unit tests of RepositoryBase<T>. It is abstract, so it is tested through PostInMemoryRepository.
-// Black-box: designed from the repository contract in Assignment 1, not from the implementation.
-// One nested class per method under test. Test names: Should<Result>_When<Condition>.
 public class RepositoryBaseTests
 {
     private static Post NewPost(string title = "Title", int userId = 1) => new()

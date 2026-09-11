@@ -6,11 +6,7 @@ using Xunit;
 
 namespace Tests.UnitTests.Views;
 
-// Unit tests of ListPostView with a fake post repository.
-// Black-box: designed from the Assignment 2 requirement "View posts overview (just display [title, id]
-// for each post)". Test names: Should<Result>_When<Condition>.
-//
-// Number of posts - BVA: zero, one and many (fence-post errors show up at the first and last element).
+
 [Collection(ConsoleCollection.Name)]
 public class ListPostViewTests
 {

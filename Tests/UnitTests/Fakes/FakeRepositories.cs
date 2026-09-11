@@ -3,9 +3,6 @@ using RepositoryContracts;
 
 namespace Tests.UnitTests.Fakes;
 
-// Test doubles for the repository interfaces. The views only depend on IRepository<T>,
-// so a unit test can hand them a fake instead of InMemoryRepositories. That isolates the
-// view logic, and 'Added' lets a test assert that AddAsync was - or was not - called.
 public class FakeRepository<T> : IRepository<T> where T : IEntity
 {
     private int nextId = 1;
