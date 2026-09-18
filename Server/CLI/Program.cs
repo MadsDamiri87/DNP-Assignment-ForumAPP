@@ -1,20 +1,15 @@
 ﻿using CLI.UI;
 using CLI.UI.ManagePosts;
 using CLI.UI.ManageUsers;
-using InMemoryRepositories;
+using FileRepository;
 using RepositoryContracts;
 
 Console.WriteLine("Starting CLI Application...");
 
-ISubForumRepository subForumRepository = new SubForumInMemoryRepository();
-IUserRepository userRepository = new UserInMemoryRepository();
-ICommentRepository commentRepository = new CommentInMemoryRepository();
-IPostRepository postRepository = new PostInMemoryRepository();
-
-DataSeeder temporaryData =
-    new DataSeeder(userRepository, postRepository, commentRepository, subForumRepository);
-await temporaryData.SeedAsync();
-
+ISubForumRepository subForumRepository = new SubForumFileRepository();
+IUserRepository userRepository = new UserFileRepository();
+ICommentRepository commentRepository = new CommentFileRepository();
+IPostRepository postRepository = new PostFileRepository();
 
 CreatePostView createPostView = new CreatePostView(postRepository, userRepository);
 ListPostView listPostView = new ListPostView(postRepository);

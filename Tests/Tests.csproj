@@ -22,6 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Server\CLI\CLI.csproj" />
     <ProjectReference Include="..\Server\InMemoryRepositories\InMemoryRepositories.csproj" />
+    <ProjectReference Include="..\Server\FileRepository\FileRepository.csproj" />
     <ProjectReference Include="..\Server\RepositoryContracts\RepositoryContracts.csproj" />
     <ProjectReference Include="..\Server\Entities\Entities.csproj" />
   </ItemGroup>
