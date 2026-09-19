@@ -202,4 +202,19 @@ public class FileRepositoryTests : IDisposable
         // Assert
         Assert.Equal(fromMemory.Message, fromFile.Message);
     }
+
+    // The repositories store their files in a Data folder, which does not exist on the first run.
+    [Fact]
+    public void ShouldCreateTheFolder_WhenTheDataFolderDoesNotExistYet()
+    {
+        // Arrange
+        string dataFolder = Path.Combine(folder, "Data");
+        string dataFile = Path.Combine(dataFolder, "posts.json");
+
+        // Act
+        _ = new PostFileRepository(dataFile);
+
+        // Assert
+        Assert.True(File.Exists(dataFile));
+    }
 }

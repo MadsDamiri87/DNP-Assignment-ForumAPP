@@ -13,6 +13,12 @@ public abstract class FileRepositoryBase<T> : IRepository<T> where T : IEntity
     {
         this.filePath = filePath;
         
+        string? folder = Path.GetDirectoryName(filePath);
+        if (!string.IsNullOrEmpty(folder))
+        {
+            Directory.CreateDirectory(folder);
+        }
+
         if (!File.Exists(filePath))
         {
             File.WriteAllText(filePath, "[]");
