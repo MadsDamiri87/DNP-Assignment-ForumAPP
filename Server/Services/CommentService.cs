@@ -102,7 +102,7 @@ public class CommentService : ICommentService
             .ToDictionary(user => user.Id, user => user.UserName);
 
         return comments
-            .Select(comment => ToDto(comment, userNames.GetValueOrDefault(comment.UserId, "")))
+            .Select(comment => ToDto(comment, userNames.GetValueOrDefault(comment.UserId, DeletedUser.UserName)))
             .ToList();
     }
 
@@ -141,7 +141,7 @@ public class CommentService : ICommentService
     private string FindUserName(int userId)
     {
         User? user = userRepository.GetManyAsync().FirstOrDefault(candidate => candidate.Id == userId);
-        return user?.UserName ?? "";
+        return user?.UserName ?? DeletedUser.UserName;
     }
 
     private static CommentDto ToDto(Comment comment, string authorUserName) =>

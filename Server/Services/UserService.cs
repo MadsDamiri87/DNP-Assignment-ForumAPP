@@ -8,20 +8,10 @@ namespace Services;
 public class UserService : IUserService
 {
     private readonly IUserRepository userRepository;
-    private readonly IPostRepository postRepository;
-    private readonly ICommentRepository commentRepository;
-    private readonly ISubForumRepository subForumRepository;
 
-    public UserService(
-        IUserRepository userRepository,
-        IPostRepository postRepository,
-        ICommentRepository commentRepository,
-        ISubForumRepository subForumRepository)
+    public UserService(IUserRepository userRepository)
     {
         this.userRepository = userRepository;
-        this.postRepository = postRepository;
-        this.commentRepository = commentRepository;
-        this.subForumRepository = subForumRepository;
     }
 
     public async Task<UserDto> CreateAsync(CreateUserDto request)
@@ -66,7 +56,6 @@ public class UserService : IUserService
 
     public Task DeleteAsync(int id)
     {
-        EnsureUserIsNotReferenced(id);
         return userRepository.DeleteAsync(id);
     }
 
@@ -120,19 +109,6 @@ public class UserService : IUserService
         if (taken)
         {
             throw new ArgumentException($"Email: '{email.Trim()}' already exists.");
-        }
-    }
-
-    private void EnsureUserIsNotReferenced(int userId)
-    {
-        bool referenced = postRepository.GetManyAsync().Any(post => post.UserId == userId)
-                          || commentRepository.GetManyAsync().Any(comment => comment.UserId == userId)
-                          || subForumRepository.GetManyAsync().Any(subForum => subForum.CreatorUserId == userId);
-
-        if (referenced)
-        {
-            throw new ConflictException(
-                $"User with id '{userId}' can't be deleted, because the user still has posts, comments or subforums.");
         }
     }
 

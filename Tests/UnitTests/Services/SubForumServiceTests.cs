@@ -1,3 +1,4 @@
+using ApiContracts;
 using Entities;
 using Services;
 using Tests.UnitTests.Fakes;
@@ -5,12 +6,13 @@ using Xunit;
 
 namespace Tests.UnitTests.Services;
 
-// Unit tests af SubForumService med fake repositories. Fokus: hvad der sker med posts, når et subforum slettes.
+// Unit tests af SubForumService med fake repositories. Fokus: posts ved sletning af et subforum, og visning af en slettet opretter.
 // Testnavne: Should<Resultat>_When<Betingelse>.
 public class SubForumServiceTests
 {
     private readonly FakeSubForumRepository subForums = new();
     private readonly FakePostRepository posts = new();
+    private readonly FakeUserRepository users = new();
     private readonly SubForumService service;
 
     // Kører før hver test (xUnits svar på JUnits @BeforeEach).
@@ -18,7 +20,7 @@ public class SubForumServiceTests
     {
         subForums.Seed(NewSubForum(1), NewSubForum(2));
         posts.Seed(NewPost(1, subForumId: 1), NewPost(2, subForumId: 2), NewPost(3, subForumId: null));
-        service = new SubForumService(subForums, new FakeUserRepository(), posts);
+        service = new SubForumService(subForums, users, posts);
     }
 
     private static SubForum NewSubForum(int id) =>
@@ -67,5 +69,31 @@ public class SubForumServiceTests
     {
         // Act + Assert
         await Assert.ThrowsAsync<InvalidOperationException>(() => service.DeleteAsync(99));
+    }
+
+    [Fact]
+    public async Task ShouldShowTheDeletedUserName_WhenTheCreatorDoesNotExistAnymore()
+    {
+        // Act
+        SubForumDto subForum = await service.GetSingleAsync(1);
+
+        // Assert
+        Assert.Equal(DeletedUser.UserName, subForum.CreatorUserName);
+    }
+
+    [Fact]
+    public async Task ShouldShowTheRealUserName_WhenTheCreatorStillExists()
+    {
+        // Arrange
+        users.Seed(new User
+        {
+            Id = 1, UserName = "mads", PasswordHash = "hash", Email = "mads@x.dk", CreatedAt = new DateTime(2026, 1, 1)
+        });
+
+        // Act
+        SubForumDto subForum = await service.GetSingleAsync(1);
+
+        // Assert
+        Assert.Equal("mads", subForum.CreatorUserName);
     }
 }

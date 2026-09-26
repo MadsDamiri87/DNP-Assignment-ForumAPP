@@ -125,7 +125,7 @@ public class PostService : IPostService
             .ToDictionary(user => user.Id, user => user.UserName);
 
         return posts
-            .Select(post => ToDto(post, userNames.GetValueOrDefault(post.UserId, "")))
+            .Select(post => ToDto(post, userNames.GetValueOrDefault(post.UserId, DeletedUser.UserName)))
             .ToList();
     }
 
@@ -169,7 +169,7 @@ public class PostService : IPostService
     private string FindUserName(int userId)
     {
         User? user = userRepository.GetManyAsync().FirstOrDefault(candidate => candidate.Id == userId);
-        return user?.UserName ?? "";
+        return user?.UserName ?? DeletedUser.UserName;
     }
 
     private static PostDto ToDto(Post post, string authorUserName) =>

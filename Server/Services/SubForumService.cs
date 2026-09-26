@@ -100,7 +100,7 @@ public class SubForumService : ISubForumService
             .ToDictionary(user => user.Id, user => user.UserName);
 
         return subForums
-            .Select(subForum => ToDto(subForum, userNames.GetValueOrDefault(subForum.CreatorUserId, "")))
+            .Select(subForum => ToDto(subForum, userNames.GetValueOrDefault(subForum.CreatorUserId, DeletedUser.UserName)))
             .ToList();
     }
 
@@ -141,7 +141,7 @@ public class SubForumService : ISubForumService
     private string FindUserName(int userId)
     {
         User? user = userRepository.GetManyAsync().FirstOrDefault(candidate => candidate.Id == userId);
-        return user?.UserName ?? "";
+        return user?.UserName ?? DeletedUser.UserName;
     }
 
     private static SubForumDto ToDto(SubForum subForum, string creatorUserName) =>

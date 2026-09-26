@@ -19,7 +19,7 @@ Strukturen gør det muligt at udskifte persistence-laget (in-memory, filer, sene
 ```
 DNP-Assignment-ForumAPP/
 ├── DNP-Assignment-ForumAPP.sln
-├── ApiContracts/                DTO'er, som deles mellem server og klienter
+├── ApiContracts/                DTO'er (og DeletedUser), som deles mellem server og klienter
 │   ├── UserDTOs/
 │   ├── PostDTOs/
 │   ├── CommentDTOs/
@@ -29,7 +29,7 @@ DNP-Assignment-ForumAPP/
 │   ├── RepositoryContracts/     Interfaces for data-adgang
 │   ├── InMemoryRepositories/    Repositories baseret på lister + DataSeeder
 │   ├── FileRepository/          Repositories der gemmer data som JSON-filer
-│   ├── ServiceContracts/        Interfaces for services og ConflictException
+│   ├── ServiceContracts/        Interfaces for services
 │   ├── Services/                Forretningslogik, validering og mapping til DTO'er
 │   ├── CLI/                     Command Line Interface (Assignment 2)
 │   └── WebAPI/                  Controllere, Program.cs og WebAPI.http
@@ -83,7 +83,7 @@ Ved siden af hver datafil ligger en lille `.nextid`-fil, som husker det næste l
 ## Web API
 Web API'en giver adgang til de samme funktioner som CLI'en, men over HTTP. Den følger REST-principperne: hver entity er en ressource med en adresse, og HTTP-verberne bestemmer handlingen.
 
-### Kør den
+### Kør den enten med play i WebAPI: http - Eller i med dette i konsollen:
 ```
 dotnet run --project Server/WebAPI --launch-profile http
 ```
@@ -98,7 +98,6 @@ API'et lytter på `http://localhost:5028`. I Development-miljøet findes Swagger
 | 204 No Content | Sletning lykkedes |
 | 400 Bad Request | Manglende eller ugyldigt input, en reference til en post/bruger/subforum der ikke findes, eller et brugernavn/en e-mail/et subforum-navn der allerede er i brug |
 | 404 Not Found | Ressourcen findes ikke |
-| 409 Conflict | Brugeren kan ikke slettes, fordi den stadig har posts, kommentarer eller subforums |
 
 ### PUT er en fuld erstatning
 `PUT` erstatter hele ressourcen, så alle felter skal med i body. Det gælder også `subForumId` på en post: send et id, eller `null` for at fjerne posten fra subforummet. Udelades feltet, svarer API'et 400, så en post ikke tavst mister sit subforum.
@@ -108,7 +107,9 @@ API'et lytter på `http://localhost:5028`. I Development-miljøet findes Swagger
 |---|---|
 | en post | Dens kommentarer slettes også |
 | et subforum | Postene i subforummet beholdes, men får ingen subforum |
-| en bruger | Afvises med 409, hvis brugeren har posts, kommentarer eller subforums |
+| en bruger | Brugerens posts, kommentarer og subforums beholdes. Forfatterens navn vises i stedet som `user no longer exists` |
+
+En slettet brugers id bliver aldrig givet til en ny bruger, så indholdet kan ikke ende hos en anden. `PostDto.AuthorUserName`, `CommentDto.AuthorUserName` og `SubForumDto.CreatorUserName` får teksten fra `DeletedUser.UserName` i `ApiContracts`, så en klient kan genkende den og fx vise den i rød skrift.
 
 Der er ikke tilføjet et transaktion-pattern over skriveoperationer. Går programmet ned midt i en sletning, kan en post være slettet uden at alle dens kommentarer er det.
 

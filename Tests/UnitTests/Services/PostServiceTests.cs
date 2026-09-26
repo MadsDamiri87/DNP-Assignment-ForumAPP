@@ -1,3 +1,4 @@
+using ApiContracts;
 using Entities;
 using Services;
 using Tests.UnitTests.Fakes;
@@ -5,12 +6,13 @@ using Xunit;
 
 namespace Tests.UnitTests.Services;
 
-// Unit tests af PostService med fake repositories. Fokus: hvad der sker med kommentarerne, når en post slettes.
+// Unit tests af PostService med fake repositories. Fokus: kommentarer ved sletning af en post, og visning af en slettet forfatter.
 // Testnavne: Should<Resultat>_When<Betingelse>.
 public class PostServiceTests
 {
     private readonly FakePostRepository posts = new();
     private readonly FakeCommentRepository comments = new();
+    private readonly FakeUserRepository users = new();
     private readonly PostService service;
 
     // Kører før hver test (xUnits svar på JUnits @BeforeEach).
@@ -18,7 +20,7 @@ public class PostServiceTests
     {
         posts.Seed(NewPost(1), NewPost(2));
         comments.Seed(NewComment(1, postId: 1), NewComment(2, postId: 1), NewComment(3, postId: 2));
-        service = new PostService(posts, new FakeUserRepository(), new FakeSubForumRepository(), comments);
+        service = new PostService(posts, users, new FakeSubForumRepository(), comments);
     }
 
     private static Post NewPost(int id) =>
@@ -67,5 +69,42 @@ public class PostServiceTests
 
         // Assert
         Assert.Equal(3, comments.Items.Count);
+    }
+
+    // En slettet bruger må ikke tage sine posts med sig, men vises med et neutralt navn.
+    [Fact]
+    public async Task ShouldShowTheDeletedUserName_WhenTheAuthorDoesNotExistAnymore()
+    {
+        // Act
+        PostDto post = await service.GetSingleAsync(1);
+
+        // Assert
+        Assert.Equal(DeletedUser.UserName, post.AuthorUserName);
+    }
+
+    [Fact]
+    public void ShouldShowTheDeletedUserName_WhenManyPostsAreFetchedAndTheAuthorIsGone()
+    {
+        // Act
+        List<PostDto> found = service.GetMany().ToList();
+
+        // Assert
+        Assert.All(found, post => Assert.Equal(DeletedUser.UserName, post.AuthorUserName));
+    }
+
+    [Fact]
+    public async Task ShouldShowTheRealUserName_WhenTheAuthorStillExists()
+    {
+        // Arrange
+        users.Seed(new User
+        {
+            Id = 1, UserName = "mads", PasswordHash = "hash", Email = "mads@x.dk", CreatedAt = new DateTime(2026, 1, 1)
+        });
+
+        // Act
+        PostDto post = await service.GetSingleAsync(1);
+
+        // Assert
+        Assert.Equal("mads", post.AuthorUserName);
     }
 }
