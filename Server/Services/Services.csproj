@@ -7,9 +7,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="CommentDTOs\" />
-      <Folder Include="PostDTOs\" />
-      <Folder Include="SubForumsDTOs\" />
+      <ProjectReference Include="..\ServiceContracts\ServiceContracts.csproj" />
+      <ProjectReference Include="..\RepositoryContracts\RepositoryContracts.csproj" />
     </ItemGroup>
 
 </Project>

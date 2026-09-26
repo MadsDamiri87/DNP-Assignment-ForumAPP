@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.2.3" />
   </ItemGroup>
 
@@ -15,6 +16,8 @@
     <ProjectReference Include="..\..\ApiContracts\ApiContracts.csproj" />
     <ProjectReference Include="..\FileRepository\FileRepository.csproj" />
     <ProjectReference Include="..\RepositoryContracts\RepositoryContracts.csproj" />
+    <ProjectReference Include="..\ServiceContracts\ServiceContracts.csproj" />
+    <ProjectReference Include="..\Services\Services.csproj" />
   </ItemGroup>
 
 </Project>

@@ -23,6 +23,9 @@
     <ProjectReference Include="..\Server\CLI\CLI.csproj" />
     <ProjectReference Include="..\Server\InMemoryRepositories\InMemoryRepositories.csproj" />
     <ProjectReference Include="..\Server\FileRepository\FileRepository.csproj" />
+    <ProjectReference Include="..\Server\ServiceContracts\ServiceContracts.csproj" />
+    <ProjectReference Include="..\Server\Services\Services.csproj" />
+    <ProjectReference Include="..\ApiContracts\ApiContracts.csproj" />
     <ProjectReference Include="..\Server\RepositoryContracts\RepositoryContracts.csproj" />
     <ProjectReference Include="..\Server\Entities\Entities.csproj" />
   </ItemGroup>
