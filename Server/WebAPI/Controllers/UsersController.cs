@@ -75,6 +75,10 @@ public class UsersController : ControllerBase
             await userService.DeleteAsync(id);
             return Results.NoContent();
         }
+        catch (ConflictException e)
+        {
+            return Results.Conflict(e.Message);
+        }
         catch (InvalidOperationException e)
         {
             return Results.NotFound(e.Message);

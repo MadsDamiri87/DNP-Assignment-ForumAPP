@@ -6,9 +6,9 @@ using RepositoryContracts;
 
 namespace Tests.IntegrationTests;
 
-// Builds the whole application the same way Program.cs does: real in-memory repositories,
-// real views, one shared instance of each repository. Program.cs uses top-level statements,
-// so its wiring cannot be called from a test - this class mirrors it.
+// Bygger hele programmet på samme måde som Program.cs: rigtige in-memory repositories,
+// rigtige views, én delt instans af hvert repository. Program.cs bruger top-level statements,
+// så dens opsætning kan ikke kaldes fra en test - denne klasse spejler den.
 public sealed class TestForumApp
 {
     public IUserRepository Users { get; } = new UserInMemoryRepository();

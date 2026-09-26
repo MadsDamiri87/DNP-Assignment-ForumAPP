@@ -27,8 +27,8 @@ public class RepositoryBaseTests
 
     public class AddAsync
     {
-        // A new instance is created before every test (xUnit's equivalent of JUnit's @BeforeEach),
-        // so every test starts with an empty repository.
+        // Der oprettes en ny instans før hver test (xUnits svar på JUnits @BeforeEach),
+        // så hver test starter med et tomt repository.
         private readonly PostInMemoryRepository repository = new();
 
         [Fact]
@@ -88,9 +88,8 @@ public class RepositoryBaseTests
             Assert.Equal(expectedId, created.Id);
         }
 
-        // Skipped on purpose (JUnit: @Disabled). The test describes the desired behaviour; the reason
-        // shows up in the test report until the defect is fixed.
-        [Fact(Skip = "Known defect: AddAsync uses Max(Id) + 1, so deleting the newest entity makes its id reusable.")]
+        // Regressionstest: et slettet id blev tidligere givet videre til den næste entity.
+        [Fact]
         public async Task ShouldNotReuseId_WhenNewestEntityWasDeleted()
         {
             // Arrange
@@ -107,20 +106,14 @@ public class RepositoryBaseTests
         }
     }
 
-    // Existing ids after arranging three posts: 1..3.
-    //
-    //   Partition (EP)   | Representative | BVA values | Expected
-    //   id < 1           | -5             | 0          | throws
-    //   1 <= id <= 3     | 2              | 1, 3       | returns the entity
-    //   id > 3           | 10             | 4          | throws
     public class GetSingleAsync
     {
         private const int PostCount = 3;
 
         [Theory]
-        [InlineData(1)] // BVA: lowest existing id
-        [InlineData(2)] // EP: representative of the valid partition
-        [InlineData(3)] // BVA: highest existing id
+        [InlineData(1)] // BVA: laveste eksisterende id
+        [InlineData(2)] // EP: repræsentant for den gyldige partition
+        [InlineData(3)] // BVA: højeste eksisterende id
         public async Task ShouldReturnEntityWithThatId_WhenIdExists(int id)
         {
             // Arrange
@@ -134,10 +127,10 @@ public class RepositoryBaseTests
         }
 
         [Theory]
-        [InlineData(-5)] // EP: representative of id < 1
-        [InlineData(0)]  // BVA: just below the lowest existing id
-        [InlineData(4)]  // BVA: just above the highest existing id
-        [InlineData(10)] // EP: representative of id > 3
+        [InlineData(-5)] // EP: repræsentant for id < 1
+        [InlineData(0)]  // BVA: lige under laveste eksisterende id
+        [InlineData(4)]  // BVA: lige over højeste eksisterende id
+        [InlineData(10)] // EP: repræsentant for id > 3
         public async Task ShouldThrow_WhenIdDoesNotExist(int id)
         {
             // Arrange
@@ -199,8 +192,8 @@ public class RepositoryBaseTests
         }
 
         [Theory]
-        [InlineData(0)] // BVA: just below the lowest existing id
-        [InlineData(4)] // BVA: just above the highest existing id
+        [InlineData(0)] // BVA: lige under laveste eksisterende id
+        [InlineData(4)] // BVA: lige over højeste eksisterende id
         public async Task ShouldThrow_WhenIdDoesNotExist(int id)
         {
             // Arrange
@@ -218,9 +211,9 @@ public class RepositoryBaseTests
         private const int PostCount = 3;
 
         [Theory]
-        [InlineData(1)] // BVA (fence-post): the first entity
-        [InlineData(2)] // EP: an entity in the middle
-        [InlineData(3)] // BVA (fence-post): the last entity
+        [InlineData(1)] // BVA (fence-post): den første entity
+        [InlineData(2)] // EP: en entity i midten
+        [InlineData(3)] // BVA (fence-post): den sidste entity
         public async Task ShouldRemoveTheEntity_WhenIdExists(int id)
         {
             // Arrange
@@ -248,8 +241,8 @@ public class RepositoryBaseTests
         }
 
         [Theory]
-        [InlineData(0)] // BVA: just below the lowest existing id
-        [InlineData(4)] // BVA: just above the highest existing id
+        [InlineData(0)] // BVA: lige under laveste eksisterende id
+        [InlineData(4)] // BVA: lige over højeste eksisterende id
         public async Task ShouldThrow_WhenIdDoesNotExist(int id)
         {
             // Arrange
@@ -260,13 +253,13 @@ public class RepositoryBaseTests
         }
     }
 
-    // BVA on the number of stored entities: zero, one and many.
+    // BVA på antallet af gemte entities: nul, én og flere.
     public class GetManyAsync
     {
         [Theory]
-        [InlineData(0)] // BVA: empty repository
-        [InlineData(1)] // BVA: exactly one entity
-        [InlineData(3)] // EP: representative of "several entities"
+        [InlineData(0)] // BVA: tomt repository
+        [InlineData(1)] // BVA: præcis én entity
+        [InlineData(3)] // EP: repræsentant for "flere entities"
         public async Task ShouldReturnEveryEntity_WhenRepositoryHasThatManyEntities(int count)
         {
             // Arrange
@@ -297,7 +290,7 @@ public class RepositoryBaseTests
         }
     }
 
-    // Why Program.cs must create each repository once and share that instance.
+    // Hvorfor Program.cs kun må oprette hvert repository én gang og dele den instans.
     public class SeparateInstances
     {
         [Fact]

@@ -8,11 +8,13 @@ public abstract class FileRepositoryBase<T> : IRepository<T> where T : IEntity
     private static readonly JsonSerializerOptions SerializerOptions = new() { WriteIndented = true };
 
     private readonly string filePath;
+    private readonly string nextIdFilePath;
 
     protected FileRepositoryBase(string filePath)
     {
         this.filePath = filePath;
-        
+        nextIdFilePath = Path.ChangeExtension(filePath, ".nextid");
+
         string? folder = Path.GetDirectoryName(filePath);
         if (!string.IsNullOrEmpty(folder))
         {
@@ -29,7 +31,7 @@ public abstract class FileRepositoryBase<T> : IRepository<T> where T : IEntity
     {
         List<T> entities = await LoadAsync();
 
-        entity.Id = entities.Count > 0 ? entities.Max(e => e.Id) + 1 : 1;
+        entity.Id = await ReserveNextIdAsync(entities);
         entities.Add(entity);
 
         await SaveAsync(entities);
@@ -73,13 +75,32 @@ public abstract class FileRepositoryBase<T> : IRepository<T> where T : IEntity
     
     public IQueryable<T> GetManyAsync()
     {
-        return LoadAsync().Result.AsQueryable();
+        return Deserialize(File.ReadAllText(filePath)).AsQueryable();
     }
 
     private async Task<List<T>> LoadAsync()
     {
-        string entitiesAsJson = await File.ReadAllTextAsync(filePath);
+        return Deserialize(await File.ReadAllTextAsync(filePath));
+    }
+
+    private static List<T> Deserialize(string entitiesAsJson)
+    {
         return JsonSerializer.Deserialize<List<T>>(entitiesAsJson) ?? [];
+    }
+
+    private async Task<int> ReserveNextIdAsync(List<T> entities)
+    {
+        int highestExistingId = entities.Count > 0 ? entities.Max(e => e.Id) : 0;
+        int nextId = highestExistingId + 1;
+
+        if (File.Exists(nextIdFilePath)
+            && int.TryParse(await File.ReadAllTextAsync(nextIdFilePath), out int storedNextId))
+        {
+            nextId = Math.Max(nextId, storedNextId);
+        }
+
+        await File.WriteAllTextAsync(nextIdFilePath, (nextId + 1).ToString());
+        return nextId;
     }
 
     private async Task SaveAsync(List<T> entities)

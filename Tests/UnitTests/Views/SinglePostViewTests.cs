@@ -16,7 +16,7 @@ public class SinglePostViewTests
     private readonly FakeCommentRepository comments = new();
     private readonly SinglePostView view;
 
-    // Runs before every test (xUnit's equivalent of JUnit's @BeforeEach).
+    // Kører før hver test (xUnits svar på JUnits @BeforeEach).
     public SinglePostViewTests()
     {
         posts.Seed(NewPost(1), NewPost(2), NewPost(3));
@@ -45,9 +45,9 @@ public class SinglePostViewTests
     };
 
     [Theory]
-    [InlineData(1)] // BVA: lowest existing id
-    [InlineData(2)] // EP: representative of the valid partition
-    [InlineData(3)] // BVA: highest existing id
+    [InlineData(1)] // BVA: laveste eksisterende id
+    [InlineData(2)] // EP: repræsentant for den gyldige partition
+    [InlineData(3)] // BVA: højeste eksisterende id
     public async Task ShouldShowTheTitle_WhenIdBelongsToAnExistingPost(int id)
     {
         // Arrange
@@ -76,10 +76,10 @@ public class SinglePostViewTests
     }
 
     [Theory]
-    [InlineData("0")]   // BVA: just below the lowest existing id
-    [InlineData("4")]   // BVA: just above the highest existing id
-    [InlineData("-5")]  // EP: negative number
-    [InlineData("100")] // EP: large number
+    [InlineData("0")]   // BVA: lige under laveste eksisterende id
+    [InlineData("4")]   // BVA: lige over højeste eksisterende id
+    [InlineData("-5")]  // EP: negativt tal
+    [InlineData("100")] // EP: stort tal
     public async Task ShouldSayThePostDoesNotExist_WhenIdHasNoPost(string id)
     {
         // Arrange
@@ -93,7 +93,7 @@ public class SinglePostViewTests
         Assert.Contains(expectedMessage, console.Output);
     }
 
-    // Regression test: an unknown id used to crash the whole application.
+    // Regressionstest: et ukendt id plejede at crashe hele programmet - det må ikke ske igen.
     [Fact]
     public async Task ShouldNotThrow_WhenIdHasNoPost()
     {
@@ -108,10 +108,10 @@ public class SinglePostViewTests
     }
 
     [Theory]
-    [InlineData("2147483648")] // BVA: int.MaxValue + 1 - just outside what an int can hold
-    [InlineData("abc")]        // EP: letters
-    [InlineData("")]           // EP: nothing entered
-    [InlineData("1.5")]        // EP: decimal number
+    [InlineData("2147483648")] // BVA: int.MaxValue + 1 - lige uden for, hvad en int kan rumme
+    [InlineData("abc")]        // EP: bogstaver
+    [InlineData("")]           // EP: ingenting indtastet
+    [InlineData("1.5")]        // EP: decimaltal
     public async Task ShouldSayTheIdIsInvalid_WhenIdIsNotAWholeNumber(string id)
     {
         // Arrange
@@ -128,7 +128,7 @@ public class SinglePostViewTests
     [Fact]
     public async Task ShouldShowNoComments_WhenPostHasNoComments()
     {
-        // Arrange - BVA: zero comments
+        // Arrange - BVA: nul kommentarer
         using var console = new ConsoleSession("3");
         string commentMarker = "- ";
 
@@ -142,7 +142,7 @@ public class SinglePostViewTests
     [Fact]
     public async Task ShouldShowTheComment_WhenPostHasOneComment()
     {
-        // Arrange - BVA: exactly one comment
+        // Arrange - BVA: præcis én kommentar
         using var console = new ConsoleSession("2");
         string expectedComment = "- Only comment on post 2";
 
@@ -156,7 +156,7 @@ public class SinglePostViewTests
     [Fact]
     public async Task ShouldShowEveryComment_WhenPostHasSeveralComments()
     {
-        // Arrange - BVA (fence-post): both the first and the last comment must be shown
+        // Arrange - BVA (fence-post): både den første og den sidste kommentar skal vises
         using var console = new ConsoleSession("1");
         string[] expectedComments = ["- First comment on post 1", "- Last comment on post 1"];
 
@@ -181,13 +181,13 @@ public class SinglePostViewTests
         Assert.DoesNotContain(commentOnAnotherPost, console.Output);
     }
 
-    // Mock (Moq) + white-box: this test checks an interaction, not a result. GetSingleAsync throws for
-    // an unknown id, and this view avoids that by not calling it at all. The fake cannot tell whether a
-    // method was called - a mock can. It is white-box, because a view that called GetSingleAsync and
-    // caught the exception would behave the same for the user, but fail this test.
+    // Mock (Moq) + white-box: testen tjekker en interaktion, ikke et resultat. GetSingleAsync kaster ved
+    // et ukendt id, og viewet undgår det ved slet ikke at kalde den. Fake'n kan ikke se, om en
+    // metode blev kaldt - en mock kan. Det er white-box, fordi et view, der kaldte GetSingleAsync og
+    // fangede exception'en, ville opføre sig ens for brugeren, men alligevel fejle testen.
     [Theory]
-    [InlineData("4")]   // BVA: just above the highest existing id
-    [InlineData("abc")] // EP: not a whole number
+    [InlineData("4")]   // BVA: lige over højeste eksisterende id
+    [InlineData("abc")] // EP: ikke et helt tal
     public async Task ShouldNotFetchThePost_WhenIdDoesNotMatchAPost(string id)
     {
         // Arrange

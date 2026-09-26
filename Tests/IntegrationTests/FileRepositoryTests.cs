@@ -10,14 +10,14 @@ public class FileRepositoryTests : IDisposable
 {
     private readonly string folder;
 
-    // Runs before every test (JUnit: @BeforeEach).
+    // Kører før hver test (JUnit: @BeforeEach).
     public FileRepositoryTests()
     {
         folder = Path.Combine(Path.GetTempPath(), "ForumAppFileRepositoryTests", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(folder);
     }
 
-    // Runs after every test (JUnit: @AfterEach).
+    // Kører efter hver test (JUnit: @AfterEach).
     public void Dispose() => Directory.Delete(folder, recursive: true);
 
     private string PostsFile => Path.Combine(folder, "posts.json");
@@ -89,7 +89,7 @@ public class FileRepositoryTests : IDisposable
         Assert.Contains(expectedTitle, await File.ReadAllTextAsync(PostsFile));
     }
 
-    // This is the point of the assignment: the data outlives the object that wrote it.
+    // Det er hele pointen med opgaven: data overlever objektet, der skrev den.
     [Fact]
     public async Task ShouldStillFindTheEntity_WhenAnotherRepositoryReadsTheSameFile()
     {
@@ -97,7 +97,7 @@ public class FileRepositoryTests : IDisposable
         PostFileRepository firstSession = NewRepository();
         Post created = await firstSession.AddAsync(NewPost("Written in the first session"));
 
-        // Act - a new repository, as if the application had been restarted
+        // Act - et nyt repository, som om programmet var genstartet
         PostFileRepository secondSession = NewRepository();
         Post found = await secondSession.GetSingleAsync(created.Id);
 
@@ -171,9 +171,9 @@ public class FileRepositoryTests : IDisposable
     }
 
     [Theory]
-    [InlineData(0)]  // BVA: just below the lowest possible id
-    [InlineData(2)]  // BVA: just above the only existing id
-    [InlineData(42)] // EP: representative of "no such id"
+    [InlineData(0)]  // BVA: lige under det laveste mulige id
+    [InlineData(2)]  // BVA: lige over det eneste eksisterende id
+    [InlineData(42)] // EP: repræsentant for "intet sådant id"
     public async Task ShouldThrow_WhenIdDoesNotExist(int id)
     {
         // Arrange
@@ -184,8 +184,8 @@ public class FileRepositoryTests : IDisposable
         await Assert.ThrowsAsync<InvalidOperationException>(() => repository.GetSingleAsync(id));
     }
 
-    // Liskov Substitution Principle: the CLI only knows IPostRepository, so the file version must
-    // fail in exactly the same way as the in-memory version - same exception type, same message.
+    // Liskov Substitution Principle: CLI'en kender kun IPostRepository, så fil-versionen skal
+    // fejle på præcis samme måde som in-memory-versionen - samme exception-type, samme besked.
     [Fact]
     public async Task ShouldFailLikeTheInMemoryRepository_WhenIdDoesNotExist()
     {
@@ -203,7 +203,7 @@ public class FileRepositoryTests : IDisposable
         Assert.Equal(fromMemory.Message, fromFile.Message);
     }
 
-    // The repositories store their files in a Data folder, which does not exist on the first run.
+    // Repositories gemmer deres filer i en Data-mappe, som ikke findes ved første kørsel.
     [Fact]
     public void ShouldCreateTheFolder_WhenTheDataFolderDoesNotExistYet()
     {
@@ -216,5 +216,54 @@ public class FileRepositoryTests : IDisposable
 
         // Assert
         Assert.True(File.Exists(dataFile));
+    }
+
+    // Regressionstest: et slettet id blev tidligere givet videre til den næste entity.
+    [Fact]
+    public async Task ShouldNotReuseId_WhenNewestEntityWasDeleted()
+    {
+        // Arrange
+        PostFileRepository repository = NewRepository();
+        await repository.AddAsync(NewPost("First"));
+        Post newest = await repository.AddAsync(NewPost("Second"));
+        await repository.DeleteAsync(newest.Id);
+
+        // Act
+        Post created = await repository.AddAsync(NewPost("Third"));
+
+        // Assert
+        Assert.NotEqual(newest.Id, created.Id);
+    }
+
+    [Fact]
+    public async Task ShouldNotReuseId_WhenAnotherRepositoryReadsTheSameFile()
+    {
+        // Arrange
+        PostFileRepository firstSession = NewRepository();
+        await firstSession.AddAsync(NewPost("First"));
+        Post newest = await firstSession.AddAsync(NewPost("Second"));
+        await firstSession.DeleteAsync(newest.Id);
+
+        // Act - et nyt repository, som om programmet var genstartet
+        Post created = await NewRepository().AddAsync(NewPost("Third"));
+
+        // Assert
+        Assert.NotEqual(newest.Id, created.Id);
+    }
+
+    // Filer fra før tælleren fandtes, skal stadig virke.
+    [Fact]
+    public async Task ShouldContinueAfterTheHighestId_WhenTheFileExistsWithoutAnIdCounter()
+    {
+        // Arrange
+        await File.WriteAllTextAsync(PostsFile,
+            "[{\"Id\":7,\"Title\":\"Old\",\"Body\":\"B\",\"UserId\":1,\"SubForumId\":null,\"CreatedAt\":\"2026-01-01T00:00:00\"}]");
+        int expectedId = 8;
+
+        // Act
+        Post created = await NewRepository().AddAsync(NewPost());
+
+        // Assert
+        Assert.Equal(expectedId, created.Id);
     }
 }

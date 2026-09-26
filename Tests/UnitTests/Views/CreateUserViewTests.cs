@@ -19,22 +19,22 @@ public class CreateUserViewTests
     private readonly FakeUserRepository users = new();
     private readonly CreateUserView view;
 
-    // Runs before every test (xUnit's equivalent of JUnit's @BeforeEach).
+    // Kører før hver test (xUnits svar på JUnits @BeforeEach).
     public CreateUserViewTests()
     {
         users.Seed(new User { Id = 1, UserName = TakenUserName, PasswordHash = "hash", Email = TakenEmail });
         view = new CreateUserView(users);
     }
 
-    // JUnit: @MethodSource. Each row is one test run.
+    // JUnit: @MethodSource. Hver række er én testkørsel.
     public static TheoryData<string, string, string> BlankFieldCases => new()
     {
-        { "", ValidPassword, ValidEmail },     // BVA: user name with 0 characters
-        { " ", ValidPassword, ValidEmail },    // BVA: user name with 1 whitespace character
-        { ValidUserName, "", ValidEmail },     // BVA: password with 0 characters
-        { ValidUserName, " ", ValidEmail },    // BVA: password with 1 whitespace character
-        { ValidUserName, ValidPassword, "" },  // BVA: email with 0 characters
-        { ValidUserName, ValidPassword, " " }, // BVA: email with 1 whitespace character
+        { "", ValidPassword, ValidEmail },     // BVA: brugernavn med 0 tegn
+        { " ", ValidPassword, ValidEmail },    // BVA: brugernavn med 1 whitespace-tegn
+        { ValidUserName, "", ValidEmail },     // BVA: password med 0 tegn
+        { ValidUserName, " ", ValidEmail },    // BVA: password med 1 whitespace-tegn
+        { ValidUserName, ValidPassword, "" },  // BVA: email med 0 tegn
+        { ValidUserName, ValidPassword, " " }, // BVA: email med 1 whitespace-tegn
     };
 
     public static TheoryData<string, string, string, string> RejectionCases => new()
@@ -104,7 +104,7 @@ public class CreateUserViewTests
     [Fact]
     public async Task ShouldAddUser_WhenEveryFieldIsOneCharacterLong()
     {
-        // Arrange - BVA: every field at its minimum length
+        // Arrange - BVA: alle felter på minimumslængde
         using var console = new ConsoleSession("a", "b", "c");
 
         // Act
@@ -169,8 +169,8 @@ public class CreateUserViewTests
         Assert.Contains(expectedMessage, console.Output);
     }
 
-    // White-box: designed from the code. The view checks the user name before the email, so when both
-    // are taken, the user name is reported. Reordering the checks breaks this test.
+    // White-box: lavet ud fra koden. Viewet tjekker brugernavn før email, så når begge
+    // er optaget, er det brugernavnet, der meldes. Ændres rækkefølgen, går testen i stykker.
     [Fact]
     public async Task ShouldReportTakenUserNameFirst_WhenBothUserNameAndEmailAreTaken()
     {

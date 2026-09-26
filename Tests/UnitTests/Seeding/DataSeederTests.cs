@@ -6,15 +6,15 @@ using Xunit;
 
 namespace Tests.UnitTests.Seeding;
 
-// Unit tests of DataSeeder with mocked repositories (Moq).
+// Unit tests af DataSeeder med mockede repositories (Moq).
 //
-// Why mocks here: DataSeeder's job is to call AddAsync and link the entities through the ids that
-// AddAsync returns. The real repositories hand out 1, 2, 3 ..., so a seeder that hard-coded
-// "UserId = 1" would still pass the integration tests - by coincidence. These mocks hand out ids
-// from 100, 200, 300 and 400 instead, so only a seeder that really uses the returned entities passes.
+// Hvorfor mocks her: DataSeeders opgave er at kalde AddAsync og koble entities sammen via de id'er, som
+// AddAsync returnerer. De rigtige repositories giver 1, 2, 3 ..., så en seeder, der hardcodede
+// "UserId = 1", stadig ville bestå integrationstestene - ved et tilfælde. Disse mocks giver id'er
+// fra 100, 200, 300 og 400 i stedet, så kun en seeder, der rigtigt bruger de returnerede entities, består.
 //
-// Setup(...) makes the mock act as a stub (it returns something); Verify(...) makes it a mock
-// (it checks which calls were made). Test names: Should<Result>_When<Condition>.
+// Setup(...) får mocken til at fungere som en stub (den returnerer noget); Verify(...) gør den til en mock
+// (den tjekker, hvilke kald der blev lavet). Testnavne: Should<Resultat>_When<Betingelse>.
 public class DataSeederTests
 {
     private const int MinimumEntities = 3;
@@ -31,8 +31,8 @@ public class DataSeederTests
 
     private readonly DataSeeder seeder;
 
-    // Runs before every test (JUnit: @BeforeEach). Every AddAsync is stubbed to give the entity the
-    // next id from its own range and return it - like a real repository, just with other ids.
+    // Kører før hver test (JUnit: @BeforeEach). Hvert AddAsync er stubbet til at give entity'en det
+    // næste id fra sit eget interval og returnere den - som et rigtigt repository, bare med andre id'er.
     public DataSeederTests()
     {
         users.Setup(r => r.AddAsync(It.IsAny<User>()))
@@ -54,11 +54,11 @@ public class DataSeederTests
         return entity;
     }
 
-    // BVA on the number of calls: the valid range is [3, 5], and Times.Between checks both boundaries.
+    // BVA på antallet af kald: gyldigt interval er [3, 5], og Times.Between tjekker begge grænser.
     [Fact]
     public async Task ShouldAddThreeToFiveUsers_WhenSeeding()
     {
-        // Arrange: done in the constructor
+        // Arrange: gøres i konstruktøren
 
         // Act
         await seeder.SeedAsync();
@@ -101,8 +101,8 @@ public class DataSeederTests
             Times.Between(MinimumEntities, MaximumEntities, Moq.Range.Inclusive));
     }
 
-    // The linking tests below verify that AddAsync was NEVER called with an id the repository did not
-    // hand out. The count tests above make sure these calls actually happened.
+    // Koblingstestene herunder verificerer, at AddAsync ALDRIG blev kaldt med et id, som repositoryet ikke
+    // har udleveret. Antalstestene ovenfor sikrer, at kaldene faktisk skete.
     [Fact]
     public async Task ShouldUseReturnedUserIds_WhenSubForumsAreAdded()
     {
@@ -131,7 +131,7 @@ public class DataSeederTests
         // Act
         await seeder.SeedAsync();
 
-        // Assert - a post without a subforum (null) is allowed
+        // Assert - en post uden subforum (null) er tilladt
         posts.Verify(r => r.AddAsync(It.Is<Post>(p =>
                 p.SubForumId.HasValue && !returnedSubForumIds.Contains(p.SubForumId.Value))),
             Times.Never);

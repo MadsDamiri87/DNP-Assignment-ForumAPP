@@ -1,6 +1,147 @@
 @WebAPI_HostAddress = http://localhost:5028
 
-GET {{WebAPI_HostAddress}}/weatherforecast/
+POST {{WebAPI_HostAddress}}/users
+Content-Type: application/json
+
+{
+  "userName": "alice",
+  "password": "secret",
+  "email": "alice@x.dk"
+}
+
+###
+
+POST {{WebAPI_HostAddress}}/users
+Content-Type: application/json
+
+{
+  "userName": "bob",
+  "password": "secret",
+  "email": "bob@x.dk"
+}
+
+###
+
+GET {{WebAPI_HostAddress}}/users?userNameContains=ali
 Accept: application/json
 
 ###
+
+GET {{WebAPI_HostAddress}}/users/1
+Accept: application/json
+
+###
+
+PUT {{WebAPI_HostAddress}}/users/1
+Content-Type: application/json
+
+{
+  "userName": "alice",
+  "password": "newsecret",
+  "email": "alice@x.dk"
+}
+
+###
+
+POST {{WebAPI_HostAddress}}/subforums
+Content-Type: application/json
+
+{
+  "name": "cats",
+  "description": "Everything about cats",
+  "creatorUserId": 1
+}
+
+###
+
+GET {{WebAPI_HostAddress}}/subforums?nameContains=cat
+Accept: application/json
+
+###
+
+POST {{WebAPI_HostAddress}}/posts
+Content-Type: application/json
+
+{
+  "title": "My first post",
+  "body": "Hello forum",
+  "userId": 1,
+  "subForumId": 1
+}
+
+###
+
+GET {{WebAPI_HostAddress}}/posts?titleContains=first&userId=1
+Accept: application/json
+
+###
+
+GET {{WebAPI_HostAddress}}/posts?userNameContains=ali&subForumId=1
+Accept: application/json
+
+###
+
+GET {{WebAPI_HostAddress}}/posts/1
+Accept: application/json
+
+###
+
+PUT {{WebAPI_HostAddress}}/posts/1
+Content-Type: application/json
+
+{
+  "title": "My first post (edited)",
+  "body": "Hello forum",
+  "subForumId": 1
+}
+
+###
+
+POST {{WebAPI_HostAddress}}/comments
+Content-Type: application/json
+
+{
+  "body": "Nice post",
+  "postId": 1,
+  "userId": 2
+}
+
+###
+
+GET {{WebAPI_HostAddress}}/posts/1/comments
+Accept: application/json
+
+###
+
+GET {{WebAPI_HostAddress}}/comments?postId=1&userId=2
+Accept: application/json
+
+###
+
+PUT {{WebAPI_HostAddress}}/comments/1
+Content-Type: application/json
+
+{
+  "body": "Nice post (edited)"
+}
+
+###
+
+GET {{WebAPI_HostAddress}}/subforums/1/posts
+Accept: application/json
+
+###
+
+DELETE {{WebAPI_HostAddress}}/comments/1
+
+###
+
+DELETE {{WebAPI_HostAddress}}/posts/1
+
+###
+
+DELETE {{WebAPI_HostAddress}}/subforums/1
+
+###
+
+DELETE {{WebAPI_HostAddress}}/users/1

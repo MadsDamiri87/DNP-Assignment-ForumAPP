@@ -10,15 +10,18 @@ public class PostService : IPostService
     private readonly IPostRepository postRepository;
     private readonly IUserRepository userRepository;
     private readonly ISubForumRepository subForumRepository;
+    private readonly ICommentRepository commentRepository;
 
     public PostService(
         IPostRepository postRepository,
         IUserRepository userRepository,
-        ISubForumRepository subForumRepository)
+        ISubForumRepository subForumRepository,
+        ICommentRepository commentRepository)
     {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.subForumRepository = subForumRepository;
+        this.commentRepository = commentRepository;
     }
 
     public async Task<PostDto> CreateAsync(CreatePostDto request)
@@ -62,9 +65,19 @@ public class PostService : IPostService
         return ToDto(updated, FindUserName(updated.UserId));
     }
 
-    public Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id)
     {
-        return postRepository.DeleteAsync(id);
+        await postRepository.DeleteAsync(id);
+
+        List<int> commentIds = commentRepository.GetManyAsync()
+            .Where(comment => comment.PostId == id)
+            .Select(comment => comment.Id)
+            .ToList();
+
+        foreach (int commentId in commentIds)
+        {
+            await commentRepository.DeleteAsync(commentId);
+        }
     }
 
     public async Task<PostDto> GetSingleAsync(int id)

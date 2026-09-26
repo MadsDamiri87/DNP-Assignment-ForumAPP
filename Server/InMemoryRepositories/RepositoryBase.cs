@@ -6,10 +6,11 @@ namespace InMemoryRepositories;
 public abstract class RepositoryBase<T> : IRepository<T> where T : IEntity
 {
     private readonly List<T> entities = new();
+    private int nextId = 1;
     
     public Task<T> AddAsync(T entity)
     {
-        entity.Id = entities.Any() ? entities.Max(e => e.Id) + 1 : 1;
+        entity.Id = nextId++;
         
         entities.Add(entity);
         

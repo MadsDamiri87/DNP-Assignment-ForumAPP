@@ -61,3 +61,5 @@ public class FakeUserRepository : FakeRepository<User>, IUserRepository;
 public class FakePostRepository : FakeRepository<Post>, IPostRepository;
 
 public class FakeCommentRepository : FakeRepository<Comment>, ICommentRepository;
+
+public class FakeSubForumRepository : FakeRepository<SubForum>, ISubForumRepository;

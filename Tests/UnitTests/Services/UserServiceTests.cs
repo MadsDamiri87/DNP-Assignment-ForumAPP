@@ -1,5 +1,6 @@
 using ApiContracts;
 using Entities;
+using ServiceContracts;
 using Services;
 using Tests.UnitTests.Fakes;
 using Xunit;
@@ -28,6 +29,9 @@ public class UserServiceTests
     private const string TakenEmail = "user1@x.dk";
 
     private readonly FakeUserRepository users = new();
+    private readonly FakePostRepository posts = new();
+    private readonly FakeCommentRepository comments = new();
+    private readonly FakeSubForumRepository subForums = new();
     private readonly UserService service;
 
     // Kører før hver test (xUnits svar på JUnits @BeforeEach).
@@ -41,12 +45,12 @@ public class UserServiceTests
             Email = TakenEmail,
             CreatedAt = new DateTime(2026, 1, 1)
         });
-        service = new UserService(users);
+        service = new UserService(users, posts, comments, subForums);
     }
 
     private static CreateUserDto NewRequest(
         string userName = ValidUserName, string password = ValidPassword, string email = ValidEmail) =>
-        new(userName, password, email);
+        new() { UserName = userName, Password = password, Email = email };
 
     public static TheoryData<string, string, string> BlankeFelter => new()
     {
@@ -212,7 +216,7 @@ public class UserServiceTests
     {
         // Arrange
         DateTime expected = new(2026, 1, 1);
-        UpdateUserDto request = new("nytnavn", "nytpass", "nyt@x.dk");
+        UpdateUserDto request = new() { UserName = "nytnavn", Password = "nytpass", Email = "nyt@x.dk" };
 
         // Act
         UserDto updated = await service.UpdateAsync(1, request);
@@ -225,7 +229,7 @@ public class UserServiceTests
     public async Task ShouldAcceptEgetUserName_WhenUserOpdateres()
     {
         // Arrange
-        UpdateUserDto request = new(TakenUserName, "nytpass", TakenEmail);
+        UpdateUserDto request = new() { UserName = TakenUserName, Password = "nytpass", Email = TakenEmail };
 
         // Act
         UserDto updated = await service.UpdateAsync(1, request);
@@ -239,9 +243,84 @@ public class UserServiceTests
     {
         // Arrange
         await service.CreateAsync(NewRequest());
-        UpdateUserDto request = new(TakenUserName, ValidPassword, ValidEmail);
+        UpdateUserDto request = new() { UserName = TakenUserName, Password = ValidPassword, Email = ValidEmail };
 
         // Act + Assert
         await Assert.ThrowsAsync<ArgumentException>(() => service.UpdateAsync(2, request));
+    }
+
+    [Theory]
+    [InlineData("USER1")] // EP: samme navn med store bogstaver
+    [InlineData("User1")] // EP: blandet store og små bogstaver
+    public async Task ShouldThrow_WhenUserNameErOptagetMedAndreBogstaver(string userName)
+    {
+        // Arrange
+        CreateUserDto request = NewRequest(userName: userName);
+
+        // Act + Assert
+        await Assert.ThrowsAsync<ArgumentException>(() => service.CreateAsync(request));
+    }
+
+    [Fact]
+    public async Task ShouldThrow_WhenEmailErOptagetMedAndreBogstaver()
+    {
+        // Arrange
+        CreateUserDto request = NewRequest(email: "USER1@X.DK");
+
+        // Act + Assert
+        await Assert.ThrowsAsync<ArgumentException>(() => service.CreateAsync(request));
+    }
+
+    [Fact]
+    public async Task ShouldDeleteTheUser_WhenNothingReferencesTheUser()
+    {
+        // Act
+        await service.DeleteAsync(1);
+
+        // Assert
+        Assert.Empty(users.Items);
+    }
+
+    [Fact]
+    public async Task ShouldThrowConflict_WhenUserHasAPost()
+    {
+        // Arrange
+        posts.Seed(new Post { Id = 1, Title = "T", Body = "B", UserId = 1, CreatedAt = DateTime.Now });
+
+        // Act + Assert
+        await Assert.ThrowsAsync<ConflictException>(() => service.DeleteAsync(1));
+    }
+
+    [Fact]
+    public async Task ShouldThrowConflict_WhenUserHasAComment()
+    {
+        // Arrange
+        comments.Seed(new Comment { Id = 1, Body = "B", PostId = 1, UserId = 1, CreatedAt = DateTime.Now });
+
+        // Act + Assert
+        await Assert.ThrowsAsync<ConflictException>(() => service.DeleteAsync(1));
+    }
+
+    [Fact]
+    public async Task ShouldThrowConflict_WhenUserHasCreatedASubForum()
+    {
+        // Arrange
+        subForums.Seed(new SubForum { Id = 1, Name = "N", Description = "D", CreatorUserId = 1 });
+
+        // Act + Assert
+        await Assert.ThrowsAsync<ConflictException>(() => service.DeleteAsync(1));
+    }
+
+    [Fact]
+    public async Task ShouldKeepTheUser_WhenDeleteIsRefused()
+    {
+        // Arrange
+        posts.Seed(new Post { Id = 1, Title = "T", Body = "B", UserId = 1, CreatedAt = DateTime.Now });
+
+        // Act
+        await Assert.ThrowsAsync<ConflictException>(() => service.DeleteAsync(1));
+
+        // Assert
+        Assert.Single(users.Items);
     }
 }

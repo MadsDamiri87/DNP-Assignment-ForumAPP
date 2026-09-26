@@ -2,9 +2,9 @@ using Xunit;
 
 namespace Tests.TestHelpers;
 
-// Console is global state for the whole process. xUnit runs test classes in parallel by
-// default, so every test class that redirects the console joins this collection, which
-// runs on its own - otherwise two tests could overwrite each other's Console.In/Out.
+// Console er global tilstand for hele processen. xUnit kører testklasser parallelt som
+// standard, så hver testklasse, der omdirigerer konsollen, hører til denne collection, som
+// kører for sig selv - ellers kunne to tests overskrive hinandens Console.In/Out.
 [CollectionDefinition(Name, DisableParallelization = true)]
 public class ConsoleCollection
 {

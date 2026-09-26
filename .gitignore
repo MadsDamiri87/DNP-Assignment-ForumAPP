@@ -3,3 +3,5 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+/Server/CLI/Data/
+/Server/WebAPI/Data/

@@ -1,3 +1,8 @@
 namespace ApiContracts;
 
-public record UpdatePostDto(string Title, string Body, int? SubForumId = null);
+public record UpdatePostDto
+{
+    public required string Title { get; init; }
+    public required string Body { get; init; }
+    public int? SubForumId { get; init; }
+}

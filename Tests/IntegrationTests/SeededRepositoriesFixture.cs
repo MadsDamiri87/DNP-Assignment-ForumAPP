@@ -3,8 +3,8 @@ using Xunit;
 
 namespace Tests.IntegrationTests;
 
-// Shared, read-only test data for DataSeederTests. xUnit creates this once for the whole test class
-// and calls InitializeAsync before the first test (JUnit: @BeforeAll) and DisposeAsync after the last
+// Fælles, skrivebeskyttet testdata til DataSeederTests. xUnit opretter den én gang for hele testklassen
+// og kalder InitializeAsync før den første test (JUnit: @BeforeAll) og DisposeAsync efter den sidste
 // (JUnit: @AfterAll).
 public class SeededRepositoriesFixture : IAsyncLifetime
 {

@@ -1,8 +1,8 @@
 namespace Tests.TestHelpers;
 
-// Redirects Console.In/Console.Out for the duration of a test, so the CLI views can be
-// fed scripted input and their output inspected. When the input lines run out,
-// Console.ReadLine() returns null - exactly like when a real user ends the input stream.
+// Omdirigerer Console.In/Console.Out, mens en test kører, så CLI-viewsene kan få
+// scriptet input, og deres output kan undersøges. Når inputlinjerne løber tør,
+// returnerer Console.ReadLine() null - ligesom når en rigtig bruger afslutter input-strømmen.
 public sealed class ConsoleSession : IDisposable
 {
     private readonly TextReader originalIn;

@@ -13,7 +13,7 @@ public class ListPostViewTests
     private readonly FakePostRepository posts = new();
     private readonly ListPostView view;
 
-    // Runs before every test (xUnit's equivalent of JUnit's @BeforeEach).
+    // Kører før hver test (xUnits svar på JUnits @BeforeEach).
     public ListPostViewTests()
     {
         view = new ListPostView(posts);
@@ -29,9 +29,9 @@ public class ListPostViewTests
     };
 
     [Theory]
-    [InlineData(0)] // BVA: no posts
-    [InlineData(1)] // BVA: exactly one post
-    [InlineData(3)] // EP: representative of "several posts"
+    [InlineData(0)] // BVA: ingen posts
+    [InlineData(1)] // BVA: præcis én post
+    [InlineData(3)] // EP: repræsentant for "flere posts"
     public async Task ShouldShowOneEntryPerPost_WhenRepositoryHasThatManyPosts(int count)
     {
         // Arrange

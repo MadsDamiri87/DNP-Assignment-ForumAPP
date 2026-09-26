@@ -1,3 +1,7 @@
 namespace ApiContracts;
 
-public record UpdateSubForumDto(string Name, string Description);
+public record UpdateSubForumDto
+{
+    public required string Name { get; init; }
+    public required string Description { get; init; }
+}

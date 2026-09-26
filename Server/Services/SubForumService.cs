@@ -9,11 +9,16 @@ public class SubForumService : ISubForumService
 {
     private readonly ISubForumRepository subForumRepository;
     private readonly IUserRepository userRepository;
+    private readonly IPostRepository postRepository;
 
-    public SubForumService(ISubForumRepository subForumRepository, IUserRepository userRepository)
+    public SubForumService(
+        ISubForumRepository subForumRepository,
+        IUserRepository userRepository,
+        IPostRepository postRepository)
     {
         this.subForumRepository = subForumRepository;
         this.userRepository = userRepository;
+        this.postRepository = postRepository;
     }
 
     public async Task<SubForumDto> CreateAsync(CreateSubForumDto request)
@@ -55,9 +60,19 @@ public class SubForumService : ISubForumService
         return ToDto(updated, FindUserName(updated.CreatorUserId));
     }
 
-    public Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id)
     {
-        return subForumRepository.DeleteAsync(id);
+        await subForumRepository.DeleteAsync(id);
+
+        List<Post> postsInSubForum = postRepository.GetManyAsync()
+            .Where(post => post.SubForumId == id)
+            .ToList();
+
+        foreach (Post post in postsInSubForum)
+        {
+            post.SubForumId = null;
+            await postRepository.UpdateAsync(post);
+        }
     }
 
     public async Task<SubForumDto> GetSingleAsync(int id)
@@ -117,9 +132,8 @@ public class SubForumService : ISubForumService
         {
             return await userRepository.GetSingleAsync(userId);
         }
-        catch (InvalidOperationException e)
+        catch (InvalidOperationException)
         {
-            Console.WriteLine(e.Message + $" User with id: '{userId}' doesn't exist.");
             throw new ArgumentException($"User with id: '{userId}' doesn't exist.");
         }
     }

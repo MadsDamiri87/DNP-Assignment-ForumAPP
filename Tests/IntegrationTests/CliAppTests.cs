@@ -4,15 +4,15 @@ using Xunit;
 
 namespace Tests.IntegrationTests;
 
-// Integration tests: the whole CLI - menus -> views -> real in-memory repositories filled by DataSeeder -
-// driven through the console like a real user. Black-box: designed from the Assignment 2 requirements.
-// One nested class per part of the application. Test names: Should<Result>_When<Condition>.
+// Integrationstests: hele CLI'en - menuer -> views -> rigtige in-memory repositories fyldt af DataSeeder -
+// styret via konsollen ligesom en rigtig bruger. Black-box: lavet ud fra kravene i Assignment 2.
+// Én nested klasse pr. del af programmet. Testnavne: Should<Resultat>_When<Betingelse>.
 public class CliAppTests
 {
     private static readonly TimeSpan RunTimeout = TimeSpan.FromSeconds(5);
 
-    // Runs the app on a background thread and throws if it has not stopped in time, so an endless loop
-    // fails the test instead of hanging the whole test run.
+    // Kører appen på en baggrundstråd og kaster en fejl, hvis den ikke er stoppet i tide, så en uendelig løkke
+    // får testen til at fejle i stedet for at hænge hele testkørslen.
     private static async Task RunAsync(TestForumApp forum)
     {
         Task run = Task.Run(() => forum.App.StartAsync());
@@ -25,21 +25,21 @@ public class CliAppTests
         await run;
     }
 
-    // Main menu - valid choices are 1..3:
-    //   Partition (EP)   | Representative  | BVA values | Expected
-    //   invalid choice   | "x", "99", ""   | "0", "4"   | "Invalid choice. Try again."
-    //   1 = Manage Users |                 | "1"        | the users menu opens
-    //   2 = Manage Posts | "2"             |            | the posts menu opens
-    //   3 = Exit         |                 | "3"        | the application stops
+    // Hovedmenu - gyldige valg er 1..3:
+    //   Partition (EP)   | Repræsentant     | BVA-værdi  | Forventet
+    //   ugyldigt valg    | "x", "99", ""   | "0", "4"   | "Invalid choice. Try again."
+    //   1 = Manage Users |                 | "1"        | brugermenuen åbner
+    //   2 = Manage Posts | "2"             |            | postmenuen åbner
+    //   3 = Exit         |                 | "3"        | programmet stopper
     [Collection(ConsoleCollection.Name)]
     public class MainMenu
     {
         [Theory]
-        [InlineData("0")]  // BVA: just below the lowest choice
-        [InlineData("4")]  // BVA: just above the highest choice
-        [InlineData("x")]  // EP: not a number
-        [InlineData("99")] // EP: number far outside the menu
-        [InlineData("")]   // EP: nothing entered
+        [InlineData("0")]  // BVA: lige under laveste valg
+        [InlineData("4")]  // BVA: lige over højeste valg
+        [InlineData("x")]  // EP: ikke et tal
+        [InlineData("99")] // EP: tal langt uden for menuen
+        [InlineData("")]   // EP: ingenting indtastet
         public async Task ShouldSayTheChoiceIsInvalid_WhenChoiceIsOutsideOneToThree(string choice)
         {
             // Arrange
@@ -57,7 +57,7 @@ public class CliAppTests
         [Fact]
         public async Task ShouldOpenTheUsersMenu_WhenChoiceIsOne()
         {
-            // Arrange - BVA: the lowest valid choice
+            // Arrange - BVA: laveste gyldige valg
             TestForumApp forum = await TestForumApp.CreateSeededAsync();
             using var console = new ConsoleSession("1", "3", "3");
             string usersMenuOption = "1. Create user";
@@ -87,7 +87,7 @@ public class CliAppTests
         [Fact]
         public async Task ShouldExit_WhenChoiceIsThree()
         {
-            // Arrange - BVA: the highest valid choice
+            // Arrange - BVA: højeste gyldige valg
             TestForumApp forum = await TestForumApp.CreateSeededAsync();
             using var console = new ConsoleSession("3");
             string expectedMessage = "You have chosen to exit.";
@@ -100,23 +100,23 @@ public class CliAppTests
         }
     }
 
-    // Posts menu - valid choices are 1..4:
-    //   Partition (EP)   | Representative | BVA values | Expected
-    //   invalid choice   | "x"            | "0", "5"   | "Invalid choice"
-    //   4 = Back         |                | "4"        | back to the main menu
+    // Postmenu - gyldige valg er 1..4:
+    //   Partition (EP)   | Repræsentant   | BVA-værdi  | Forventet
+    //   ugyldigt valg    | "x"            | "0", "5"   | "Invalid choice"
+    //   4 = Back         |                | "4"        | tilbage til hovedmenuen
     [Collection(ConsoleCollection.Name)]
     public class PostsMenu
     {
         [Theory]
-        [InlineData("0")] // BVA: just below the lowest choice
-        [InlineData("5")] // BVA: just above the highest choice
-        [InlineData("x")] // EP: not a number
+        [InlineData("0")] // BVA: lige under laveste valg
+        [InlineData("5")] // BVA: lige over højeste valg
+        [InlineData("x")] // EP: ikke et tal
         public async Task ShouldSayTheChoiceIsInvalid_WhenChoiceIsOutsideOneToFour(string choice)
         {
             // Arrange
             TestForumApp forum = await TestForumApp.CreateSeededAsync();
             using var console = new ConsoleSession("2", choice, "4", "3");
-            // The line ends right after "Invalid choice" - the main menu's message continues with ". Try again."
+            // Linjen slutter lige efter "Invalid choice" - hovedmenuens besked fortsætter med ". Try again."
             string expectedMessage = "Invalid choice" + Environment.NewLine;
 
             // Act
@@ -129,7 +129,7 @@ public class CliAppTests
         [Fact]
         public async Task ShouldReturnToTheMainMenu_WhenChoiceIsFour()
         {
-            // Arrange - BVA: the highest valid choice. "3" only exits if we are back in the main menu.
+            // Arrange - BVA: højeste gyldige valg. "3" afslutter kun, hvis vi er tilbage i hovedmenuen.
             TestForumApp forum = await TestForumApp.CreateSeededAsync();
             using var console = new ConsoleSession("2", "4", "3");
             string expectedMessage = "You have chosen to exit.";
@@ -142,7 +142,7 @@ public class CliAppTests
         }
     }
 
-    // The must-have requirements of Assignment 2, end to end.
+    // Must-have-kravene fra Assignment 2, hele vejen igennem.
     [Collection(ConsoleCollection.Name)]
     public class UseCases
     {
@@ -229,7 +229,7 @@ public class CliAppTests
         [Fact]
         public async Task ShouldKeepRunning_WhenUnknownPostIsViewed()
         {
-            // Arrange - the app used to crash here; reaching "exit" proves it survived
+            // Arrange - appen plejede at crashe her; at vi når til "exit" viser, at den overlever
             TestForumApp forum = await TestForumApp.CreateSeededAsync();
             using var console = new ConsoleSession("2", "3", "99", "4", "3");
             string expectedMessage = "You have chosen to exit.";
@@ -242,8 +242,8 @@ public class CliAppTests
         }
     }
 
-    // White-box: every menu loop has a branch for Console.ReadLine() returning null (the input has ended).
-    // These tests exist to execute that branch in each menu - they are designed from the code.
+    // White-box: hver menuløkke har en gren til, at Console.ReadLine() returnerer null (inputtet er slut).
+    // Testene er der for at køre den gren i hver menu - de er lavet ud fra koden.
     [Collection(ConsoleCollection.Name)]
     public class InputEnds
     {

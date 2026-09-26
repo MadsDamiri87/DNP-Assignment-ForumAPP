@@ -27,7 +27,6 @@ public class PostsController : ControllerBase
         }
         catch (ArgumentException e)
         {
-            Console.WriteLine(e.Message);
             return Results.BadRequest(e.Message);
         }
     }
@@ -42,7 +41,6 @@ public class PostsController : ControllerBase
         }
         catch (InvalidOperationException e)
         {
-            Console.WriteLine(e.Message);
             return Results.NotFound(e.Message);
         }
     }
@@ -67,7 +65,6 @@ public class PostsController : ControllerBase
         }
         catch (InvalidOperationException e)
         {
-            Console.WriteLine(e.Message);
             return Results.NotFound(e.Message);
         }
     }
@@ -82,12 +79,10 @@ public class PostsController : ControllerBase
         }
         catch (ArgumentException e)
         {
-            Console.WriteLine(e.Message);
             return Results.BadRequest(e.Message);
         }
         catch (InvalidOperationException e)
         {
-            Console.WriteLine(e.Message);
             return Results.NotFound(e.Message);
         }
     }
@@ -102,7 +97,6 @@ public class PostsController : ControllerBase
         }
         catch (InvalidOperationException e)
         {
-            Console.WriteLine(e.Message);
             return Results.NotFound(e.Message);
         }
     }

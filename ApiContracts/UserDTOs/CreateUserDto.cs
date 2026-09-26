@@ -1,3 +1,8 @@
 namespace ApiContracts;
 
-public record CreateUserDto(string UserName, string Password, string Email);
+public record CreateUserDto
+{
+    public required string UserName { get; init; }
+    public required string Password { get; init; }
+    public required string Email { get; init; }
+}

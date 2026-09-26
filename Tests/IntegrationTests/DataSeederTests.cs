@@ -2,12 +2,12 @@ using Xunit;
 
 namespace Tests.IntegrationTests;
 
-// Integration tests: DataSeeder together with the real in-memory repositories.
-// The data is seeded once for the whole class by SeededRepositoriesFixture (xUnit's equivalent of
-// JUnit's @BeforeAll), because every test only reads it. Test names: Should<Result>_When<Condition>.
+// Integrationstests: DataSeeder sammen med de rigtige in-memory repositories.
+// Data bliver seedet én gang for hele klassen af SeededRepositoriesFixture (xUnits svar på
+// JUnits @BeforeAll), fordi hver test kun læser den. Testnavne: Should<Resultat>_When<Betingelse>.
 //
 // Assignment 2: "Each of your repositories must create some initial dummy data, say 3-5 entities".
-// The valid range for the count is [3, 5] - InRange checks both boundaries.
+// Gyldigt interval for antallet er [3, 5] - InRange tjekker begge grænser.
 public class DataSeederTests : IClassFixture<SeededRepositoriesFixture>
 {
     private const int MinimumEntities = 3;
@@ -23,7 +23,7 @@ public class DataSeederTests : IClassFixture<SeededRepositoriesFixture>
     [Fact]
     public void ShouldCreateThreeToFiveUsers_WhenSeeded()
     {
-        // Arrange + Act: done once by SeededRepositoriesFixture
+        // Arrange + Act: gøres én gang af SeededRepositoriesFixture
         int count = seeded.Users.GetManyAsync().Count();
 
         // Assert
@@ -33,7 +33,7 @@ public class DataSeederTests : IClassFixture<SeededRepositoriesFixture>
     [Fact]
     public void ShouldCreateThreeToFiveSubForums_WhenSeeded()
     {
-        // Arrange + Act: done once by SeededRepositoriesFixture
+        // Arrange + Act: gøres én gang af SeededRepositoriesFixture
         int count = seeded.SubForums.GetManyAsync().Count();
 
         // Assert
@@ -43,7 +43,7 @@ public class DataSeederTests : IClassFixture<SeededRepositoriesFixture>
     [Fact]
     public void ShouldCreateThreeToFivePosts_WhenSeeded()
     {
-        // Arrange + Act: done once by SeededRepositoriesFixture
+        // Arrange + Act: gøres én gang af SeededRepositoriesFixture
         int count = seeded.Posts.GetManyAsync().Count();
 
         // Assert
@@ -53,7 +53,7 @@ public class DataSeederTests : IClassFixture<SeededRepositoriesFixture>
     [Fact]
     public void ShouldCreateThreeToFiveComments_WhenSeeded()
     {
-        // Arrange + Act: done once by SeededRepositoriesFixture
+        // Arrange + Act: gøres én gang af SeededRepositoriesFixture
         int count = seeded.Comments.GetManyAsync().Count();
 
         // Assert
@@ -92,7 +92,7 @@ public class DataSeederTests : IClassFixture<SeededRepositoriesFixture>
         // Arrange
         List<int> subForumIds = seeded.SubForums.GetManyAsync().Select(s => s.Id).ToList();
 
-        // Act - posts without a subforum (null) are allowed and skipped
+        // Act - posts uden subforum (null) er tilladt og springes over
         List<int> referencedSubForumIds = seeded.Posts.GetManyAsync().Select(p => p.SubForumId).OfType<int>().ToList();
 
         // Assert

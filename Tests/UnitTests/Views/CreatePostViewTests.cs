@@ -18,7 +18,7 @@ public class CreatePostViewTests
     private readonly FakeUserRepository users = new();
     private readonly CreatePostView view;
 
-    // Runs before every test (xUnit's equivalent of JUnit's @BeforeEach).
+    // Kører før hver test (xUnits svar på JUnits @BeforeEach).
     public CreatePostViewTests()
     {
         users.Seed(NewUser(1), NewUser(2), NewUser(3));
@@ -91,9 +91,9 @@ public class CreatePostViewTests
     }
 
     [Theory]
-    [InlineData("a")]        // BVA: minimum length, 1 character
-    [InlineData("ab")]       // BVA: just inside the minimum
-    [InlineData(ValidTitle)] // EP: representative of the valid partition
+    [InlineData("a")]        // BVA: minimumslængde, 1 tegn
+    [InlineData("ab")]       // BVA: lige inden for minimum
+    [InlineData(ValidTitle)] // EP: repræsentant for den gyldige partition
     public async Task ShouldAddPost_WhenTitleHasAtLeastOneCharacter(string title)
     {
         // Arrange
@@ -107,9 +107,9 @@ public class CreatePostViewTests
     }
 
     [Theory]
-    [InlineData("")]    // BVA: 0 characters, just outside the minimum
-    [InlineData(" ")]   // BVA: 1 character, but only whitespace
-    [InlineData("   ")] // EP: representative of the blank partition
+    [InlineData("")]    // BVA: 0 tegn, lige uden for minimum
+    [InlineData(" ")]   // BVA: 1 tegn, men kun whitespace
+    [InlineData("   ")] // EP: repræsentant for den blanke partition
     public async Task ShouldNotAddPost_WhenTitleIsBlank(string title)
     {
         // Arrange
@@ -123,9 +123,9 @@ public class CreatePostViewTests
     }
 
     [Theory]
-    [InlineData("")]    // BVA: 0 characters, just outside the minimum
-    [InlineData(" ")]   // BVA: 1 character, but only whitespace
-    [InlineData("   ")] // EP: representative of the blank partition
+    [InlineData("")]    // BVA: 0 tegn, lige uden for minimum
+    [InlineData(" ")]   // BVA: 1 tegn, men kun whitespace
+    [InlineData("   ")] // EP: repræsentant for den blanke partition
     public async Task ShouldNotAddPost_WhenBodyIsBlank(string body)
     {
         // Arrange
@@ -153,9 +153,9 @@ public class CreatePostViewTests
     }
 
     [Theory]
-    [InlineData("1")] // BVA: lowest existing user id
-    [InlineData("2")] // EP: representative of the valid partition
-    [InlineData("3")] // BVA: highest existing user id
+    [InlineData("1")] // BVA: laveste eksisterende bruger-id
+    [InlineData("2")] // EP: repræsentant for den gyldige partition
+    [InlineData("3")] // BVA: højeste eksisterende bruger-id
     public async Task ShouldAddPost_WhenUserIdBelongsToAnExistingUser(string userId)
     {
         // Arrange
@@ -169,11 +169,11 @@ public class CreatePostViewTests
     }
 
     [Theory]
-    [InlineData("0")]          // BVA: just below the lowest existing id
-    [InlineData("4")]          // BVA: just above the highest existing id
-    [InlineData("2147483647")] // BVA: int.MaxValue - still a valid number, but no such user
-    [InlineData("-5")]         // EP: negative number
-    [InlineData("100")]        // EP: large number
+    [InlineData("0")]          // BVA: lige under laveste eksisterende id
+    [InlineData("4")]          // BVA: lige over højeste eksisterende id
+    [InlineData("2147483647")] // BVA: int.MaxValue - stadig et gyldigt tal, men ingen sådan bruger
+    [InlineData("-5")]         // EP: negativt tal
+    [InlineData("100")]        // EP: stort tal
     public async Task ShouldNotAddPost_WhenUserIdHasNoUser(string userId)
     {
         // Arrange
@@ -201,10 +201,10 @@ public class CreatePostViewTests
     }
 
     [Theory]
-    [InlineData("2147483648")] // BVA: int.MaxValue + 1 - just outside what an int can hold
-    [InlineData("abc")]        // EP: letters
-    [InlineData("")]           // EP: nothing entered
-    [InlineData("1.5")]        // EP: decimal number
+    [InlineData("2147483648")] // BVA: int.MaxValue + 1 - lige uden for, hvad en int kan rumme
+    [InlineData("abc")]        // EP: bogstaver
+    [InlineData("")]           // EP: ingenting indtastet
+    [InlineData("1.5")]        // EP: decimaltal
     public async Task ShouldNotAddPost_WhenUserIdIsNotAWholeNumber(string userId)
     {
         // Arrange
@@ -231,8 +231,8 @@ public class CreatePostViewTests
         Assert.Contains(expectedMessage, console.Output);
     }
 
-    // White-box: designed from the code, not from the requirement. The view checks title/body before
-    // it parses the user id, so a blank title is reported first. Reordering the checks breaks this test.
+    // White-box: lavet ud fra koden, ikke ud fra kravet. Viewet tjekker titel/body, før
+    // det parser bruger-id'et, så en blank titel bliver meldt først. Ændres rækkefølgen, går testen i stykker.
     [Fact]
     public async Task ShouldReportBlankTitleFirst_WhenTitleIsBlankAndUserIdIsInvalid()
     {
