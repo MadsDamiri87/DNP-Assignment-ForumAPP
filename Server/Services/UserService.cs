@@ -110,11 +110,6 @@ public class UserService : IUserService
         }
     }
 
-    private static UserDto ToDto(User user) => new()
-    {
-        Id = user.Id,
-        UserName = user.UserName,
-        Email = user.Email,
-        CreatedAt = user.CreatedAt
-    };
+    private static UserDto ToDto(User user) =>
+        new(user.Id, user.UserName, user.Email, user.CreatedAt);
 }

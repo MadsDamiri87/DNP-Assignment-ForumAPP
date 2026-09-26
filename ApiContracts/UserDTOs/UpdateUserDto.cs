@@ -1,8 +1,3 @@
 namespace ApiContracts;
 
-public class UpdateUserDto
-{
-    public required string UserName { get; set; }
-    public required string Password { get; set; }
-    public required string Email { get; set; }
-}
+public record UpdateUserDto(string UserName, string Password, string Email);

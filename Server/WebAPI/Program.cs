@@ -18,6 +18,9 @@ builder.Services.AddScoped<ICommentRepository, CommentFileRepository>();
 builder.Services.AddScoped<ISubForumRepository, SubForumFileRepository>();
 
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IPostService, PostService>();
+builder.Services.AddScoped<ICommentService, CommentService>();
+builder.Services.AddScoped<ISubForumService, SubForumService>();
 
 builder.Services.AddControllers();
 

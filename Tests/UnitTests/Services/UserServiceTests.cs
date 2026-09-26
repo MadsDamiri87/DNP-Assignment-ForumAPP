@@ -46,7 +46,7 @@ public class UserServiceTests
 
     private static CreateUserDto NewRequest(
         string userName = ValidUserName, string password = ValidPassword, string email = ValidEmail) =>
-        new() { UserName = userName, Password = password, Email = email };
+        new(userName, password, email);
 
     public static TheoryData<string, string, string> BlankeFelter => new()
     {
@@ -212,7 +212,7 @@ public class UserServiceTests
     {
         // Arrange
         DateTime expected = new(2026, 1, 1);
-        UpdateUserDto request = new() { UserName = "nytnavn", Password = "nytpass", Email = "nyt@x.dk" };
+        UpdateUserDto request = new("nytnavn", "nytpass", "nyt@x.dk");
 
         // Act
         UserDto updated = await service.UpdateAsync(1, request);
@@ -225,7 +225,7 @@ public class UserServiceTests
     public async Task ShouldAcceptEgetUserName_WhenUserOpdateres()
     {
         // Arrange
-        UpdateUserDto request = new() { UserName = TakenUserName, Password = "nytpass", Email = TakenEmail };
+        UpdateUserDto request = new(TakenUserName, "nytpass", TakenEmail);
 
         // Act
         UserDto updated = await service.UpdateAsync(1, request);
@@ -239,7 +239,7 @@ public class UserServiceTests
     {
         // Arrange
         await service.CreateAsync(NewRequest());
-        UpdateUserDto request = new() { UserName = TakenUserName, Password = ValidPassword, Email = ValidEmail };
+        UpdateUserDto request = new(TakenUserName, ValidPassword, ValidEmail);
 
         // Act + Assert
         await Assert.ThrowsAsync<ArgumentException>(() => service.UpdateAsync(2, request));

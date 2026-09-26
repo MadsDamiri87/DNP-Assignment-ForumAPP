@@ -1,9 +1,3 @@
 namespace ApiContracts;
 
-public class UserDto
-{
-    public required int Id { get; set; }
-    public required string UserName { get; set; }
-    public required string Email { get; set; }
-    public required DateTime CreatedAt { get; set; }
-}
+public record UserDto(int Id, string UserName, string Email, DateTime CreatedAt);
