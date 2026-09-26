@@ -109,7 +109,7 @@ API'et lytter på `http://localhost:5028`. I Development-miljøet findes Swagger
 | et subforum | Postene i subforummet beholdes, men får ingen subforum |
 | en bruger | Brugerens posts, kommentarer og subforums beholdes. Forfatterens navn vises i stedet som `user no longer exists` |
 
-En slettet brugers id bliver aldrig givet til en ny bruger, så indholdet kan ikke ende hos en anden. `PostDto.AuthorUserName`, `CommentDto.AuthorUserName` og `SubForumDto.CreatorUserName` får teksten fra `DeletedUser.UserName` i `ApiContracts`, så en klient kan genkende den og fx vise den i rød skrift.
+En slettet brugers id bliver aldrig givet til en ny bruger, så indholdet kan ikke ende hos en anden. `PostDto.AuthorUserName`, `CommentDto.AuthorUserName` og `SubForumDto.CreatorUserName` får teksten fra `DeletedUser.UserName` i `ApiContracts`, så en klient kan genkende den og evt vise den i rød skrift.
 
 Der er ikke tilføjet et transaktion-pattern over skriveoperationer. Går programmet ned midt i en sletning, kan en post være slettet uden at alle dens kommentarer er det.
 
