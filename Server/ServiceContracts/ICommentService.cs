@@ -2,12 +2,8 @@
 
 namespace ServiceContracts;
 
-public interface ICommentService
+public interface ICommentService : IService<CommentDto, CreateCommentDto, UpdateCommentDto>
 {
-    Task<CommentDto> CreateAsync(CreateCommentDto request);
-    Task<CommentDto> UpdateAsync(int id, UpdateCommentDto request);
-    Task DeleteAsync(int id);
-    Task<CommentDto> GetSingleAsync(int id);
     IEnumerable<CommentDto> GetMany(
         int? postId = null,
         int? userId = null,
