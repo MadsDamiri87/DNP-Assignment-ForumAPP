@@ -15,7 +15,7 @@ public class ListPostView
     {
         Console.WriteLine("List post selected");
         
-        IQueryable<Entities.Post> posts = postRepository.GetManyAsync();
+        IQueryable<Entities.Post> posts = postRepository.GetMany();
 
         foreach (var post in posts)
         {

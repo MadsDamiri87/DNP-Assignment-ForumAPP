@@ -24,7 +24,7 @@ public class DataSeederTests : IClassFixture<SeededRepositoriesFixture>
     public void ShouldCreateThreeToFiveUsers_WhenSeeded()
     {
         // Arrange + Act: gøres én gang af SeededRepositoriesFixture
-        int count = seeded.Users.GetManyAsync().Count();
+        int count = seeded.Users.GetMany().Count();
 
         // Assert
         Assert.InRange(count, MinimumEntities, MaximumEntities);
@@ -34,7 +34,7 @@ public class DataSeederTests : IClassFixture<SeededRepositoriesFixture>
     public void ShouldCreateThreeToFiveSubForums_WhenSeeded()
     {
         // Arrange + Act: gøres én gang af SeededRepositoriesFixture
-        int count = seeded.SubForums.GetManyAsync().Count();
+        int count = seeded.SubForums.GetMany().Count();
 
         // Assert
         Assert.InRange(count, MinimumEntities, MaximumEntities);
@@ -44,7 +44,7 @@ public class DataSeederTests : IClassFixture<SeededRepositoriesFixture>
     public void ShouldCreateThreeToFivePosts_WhenSeeded()
     {
         // Arrange + Act: gøres én gang af SeededRepositoriesFixture
-        int count = seeded.Posts.GetManyAsync().Count();
+        int count = seeded.Posts.GetMany().Count();
 
         // Assert
         Assert.InRange(count, MinimumEntities, MaximumEntities);
@@ -54,7 +54,7 @@ public class DataSeederTests : IClassFixture<SeededRepositoriesFixture>
     public void ShouldCreateThreeToFiveComments_WhenSeeded()
     {
         // Arrange + Act: gøres én gang af SeededRepositoriesFixture
-        int count = seeded.Comments.GetManyAsync().Count();
+        int count = seeded.Comments.GetMany().Count();
 
         // Assert
         Assert.InRange(count, MinimumEntities, MaximumEntities);
@@ -64,10 +64,10 @@ public class DataSeederTests : IClassFixture<SeededRepositoriesFixture>
     public void ShouldOnlyReferenceExistingUsers_WhenSubForumsAreSeeded()
     {
         // Arrange
-        List<int> userIds = seeded.Users.GetManyAsync().Select(u => u.Id).ToList();
+        List<int> userIds = seeded.Users.GetMany().Select(u => u.Id).ToList();
 
         // Act
-        List<int> referencedUserIds = seeded.SubForums.GetManyAsync().Select(s => s.CreatorUserId).ToList();
+        List<int> referencedUserIds = seeded.SubForums.GetMany().Select(s => s.CreatorUserId).ToList();
 
         // Assert
         Assert.All(referencedUserIds, id => Assert.Contains(id, userIds));
@@ -77,10 +77,10 @@ public class DataSeederTests : IClassFixture<SeededRepositoriesFixture>
     public void ShouldOnlyReferenceExistingUsers_WhenPostsAreSeeded()
     {
         // Arrange
-        List<int> userIds = seeded.Users.GetManyAsync().Select(u => u.Id).ToList();
+        List<int> userIds = seeded.Users.GetMany().Select(u => u.Id).ToList();
 
         // Act
-        List<int> referencedUserIds = seeded.Posts.GetManyAsync().Select(p => p.UserId).ToList();
+        List<int> referencedUserIds = seeded.Posts.GetMany().Select(p => p.UserId).ToList();
 
         // Assert
         Assert.All(referencedUserIds, id => Assert.Contains(id, userIds));
@@ -90,10 +90,10 @@ public class DataSeederTests : IClassFixture<SeededRepositoriesFixture>
     public void ShouldOnlyReferenceExistingSubForums_WhenPostsAreSeeded()
     {
         // Arrange
-        List<int> subForumIds = seeded.SubForums.GetManyAsync().Select(s => s.Id).ToList();
+        List<int> subForumIds = seeded.SubForums.GetMany().Select(s => s.Id).ToList();
 
         // Act - posts uden subforum (null) er tilladt og springes over
-        List<int> referencedSubForumIds = seeded.Posts.GetManyAsync().Select(p => p.SubForumId).OfType<int>().ToList();
+        List<int> referencedSubForumIds = seeded.Posts.GetMany().Select(p => p.SubForumId).OfType<int>().ToList();
 
         // Assert
         Assert.All(referencedSubForumIds, id => Assert.Contains(id, subForumIds));
@@ -103,10 +103,10 @@ public class DataSeederTests : IClassFixture<SeededRepositoriesFixture>
     public void ShouldOnlyReferenceExistingPosts_WhenCommentsAreSeeded()
     {
         // Arrange
-        List<int> postIds = seeded.Posts.GetManyAsync().Select(p => p.Id).ToList();
+        List<int> postIds = seeded.Posts.GetMany().Select(p => p.Id).ToList();
 
         // Act
-        List<int> referencedPostIds = seeded.Comments.GetManyAsync().Select(c => c.PostId).ToList();
+        List<int> referencedPostIds = seeded.Comments.GetMany().Select(c => c.PostId).ToList();
 
         // Assert
         Assert.All(referencedPostIds, id => Assert.Contains(id, postIds));
@@ -116,10 +116,10 @@ public class DataSeederTests : IClassFixture<SeededRepositoriesFixture>
     public void ShouldOnlyReferenceExistingUsers_WhenCommentsAreSeeded()
     {
         // Arrange
-        List<int> userIds = seeded.Users.GetManyAsync().Select(u => u.Id).ToList();
+        List<int> userIds = seeded.Users.GetMany().Select(u => u.Id).ToList();
 
         // Act
-        List<int> referencedUserIds = seeded.Comments.GetManyAsync().Select(c => c.UserId).ToList();
+        List<int> referencedUserIds = seeded.Comments.GetMany().Select(c => c.UserId).ToList();
 
         // Assert
         Assert.All(referencedUserIds, id => Assert.Contains(id, userIds));

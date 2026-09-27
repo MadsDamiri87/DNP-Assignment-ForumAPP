@@ -75,7 +75,7 @@ public class CommentService : ICommentService
         int? userId = null,
         string? userNameContains = null)
     {
-        IQueryable<Comment> comments = commentRepository.GetManyAsync();
+        IQueryable<Comment> comments = commentRepository.GetMany();
 
         if (postId.HasValue)
         {
@@ -90,7 +90,7 @@ public class CommentService : ICommentService
         if (!string.IsNullOrWhiteSpace(userNameContains))
         {
             string filter = userNameContains.Trim();
-            List<int> matchingUserIds = userRepository.GetManyAsync()
+            List<int> matchingUserIds = userRepository.GetMany()
                 .Where(user => user.UserName.Contains(filter, StringComparison.OrdinalIgnoreCase))
                 .Select(user => user.Id)
                 .ToList();
@@ -98,7 +98,7 @@ public class CommentService : ICommentService
             comments = comments.Where(comment => matchingUserIds.Contains(comment.UserId));
         }
 
-        Dictionary<int, string> userNames = userRepository.GetManyAsync()
+        Dictionary<int, string> userNames = userRepository.GetMany()
             .ToDictionary(user => user.Id, user => user.UserName);
 
         return comments
@@ -140,7 +140,7 @@ public class CommentService : ICommentService
 
     private string FindUserName(int userId)
     {
-        User? user = userRepository.GetManyAsync().FirstOrDefault(candidate => candidate.Id == userId);
+        User? user = userRepository.GetMany().FirstOrDefault(candidate => candidate.Id == userId);
         return user?.UserName ?? DeletedUser.UserName;
     }
 

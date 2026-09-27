@@ -48,7 +48,7 @@ public abstract class RepositoryBase<T> : IRepository<T> where T : IEntity
         return Task.FromResult(existingEntity);
     }
     
-    public IQueryable<T> GetManyAsync()
+    public IQueryable<T> GetMany()
     {
         return entities.AsQueryable();
     }

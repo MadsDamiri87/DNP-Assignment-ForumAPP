@@ -14,7 +14,7 @@ public class CreateUserView
 
     private bool UserNameExists(string userName)
     {
-        bool userExists = userRepository.GetManyAsync().Any(user => user.UserName == userName);
+        bool userExists = userRepository.GetMany().Any(user => user.UserName == userName);
         
         if (!userExists)
         {
@@ -27,7 +27,7 @@ public class CreateUserView
     private bool EmailExists(string email)
     {
         return (userRepository
-            .GetManyAsync()
+            .GetMany()
             .Any(user => user.Email == email));
     }
     

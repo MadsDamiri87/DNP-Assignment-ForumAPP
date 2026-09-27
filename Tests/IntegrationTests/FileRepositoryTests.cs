@@ -131,7 +131,7 @@ public class FileRepositoryTests : IDisposable
         int expectedCount = 2;
 
         // Act
-        int count = NewRepository().GetManyAsync().Count();
+        int count = NewRepository().GetMany().Count();
 
         // Assert
         Assert.Equal(expectedCount, count);
@@ -167,7 +167,7 @@ public class FileRepositoryTests : IDisposable
         await repository.DeleteAsync(created.Id);
 
         // Assert
-        Assert.Empty(NewRepository().GetManyAsync());
+        Assert.Empty(NewRepository().GetMany());
     }
 
     [Theory]

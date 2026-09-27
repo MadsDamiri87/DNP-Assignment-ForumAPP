@@ -67,7 +67,7 @@ public class UserService : IUserService
 
     public IEnumerable<UserDto> GetMany(string? userNameContains = null)
     {
-        IQueryable<User> users = userRepository.GetManyAsync();
+        IQueryable<User> users = userRepository.GetMany();
 
         if (!string.IsNullOrWhiteSpace(userNameContains))
         {
@@ -90,7 +90,7 @@ public class UserService : IUserService
 
     private void EnsureUserNameIsAvailable(string userName, int? ignoredUserId = null)
     {
-        bool taken = userRepository.GetManyAsync()
+        bool taken = userRepository.GetMany()
             .Any(user => user.Id != ignoredUserId
                          && user.UserName.Equals(userName.Trim(), StringComparison.OrdinalIgnoreCase));
 
@@ -102,7 +102,7 @@ public class UserService : IUserService
 
     private void EnsureEmailIsAvailable(string email, int? ignoredUserId = null)
     {
-        bool taken = userRepository.GetManyAsync()
+        bool taken = userRepository.GetMany()
             .Any(user => user.Id != ignoredUserId
                          && user.Email.Equals(email.Trim(), StringComparison.OrdinalIgnoreCase));
 

@@ -69,7 +69,7 @@ public class PostService : IPostService
     {
         await postRepository.DeleteAsync(id);
 
-        List<int> commentIds = commentRepository.GetManyAsync()
+        List<int> commentIds = commentRepository.GetMany()
             .Where(comment => comment.PostId == id)
             .Select(comment => comment.Id)
             .ToList();
@@ -92,7 +92,7 @@ public class PostService : IPostService
         string? userNameContains = null,
         int? subForumId = null)
     {
-        IQueryable<Post> posts = postRepository.GetManyAsync();
+        IQueryable<Post> posts = postRepository.GetMany();
 
         if (!string.IsNullOrWhiteSpace(titleContains))
         {
@@ -113,7 +113,7 @@ public class PostService : IPostService
         if (!string.IsNullOrWhiteSpace(userNameContains))
         {
             string filter = userNameContains.Trim();
-            List<int> matchingUserIds = userRepository.GetManyAsync()
+            List<int> matchingUserIds = userRepository.GetMany()
                 .Where(user => user.UserName.Contains(filter, StringComparison.OrdinalIgnoreCase))
                 .Select(user => user.Id)
                 .ToList();
@@ -121,7 +121,7 @@ public class PostService : IPostService
             posts = posts.Where(post => matchingUserIds.Contains(post.UserId));
         }
 
-        Dictionary<int, string> userNames = userRepository.GetManyAsync()
+        Dictionary<int, string> userNames = userRepository.GetMany()
             .ToDictionary(user => user.Id, user => user.UserName);
 
         return posts
@@ -168,7 +168,7 @@ public class PostService : IPostService
 
     private string FindUserName(int userId)
     {
-        User? user = userRepository.GetManyAsync().FirstOrDefault(candidate => candidate.Id == userId);
+        User? user = userRepository.GetMany().FirstOrDefault(candidate => candidate.Id == userId);
         return user?.UserName ?? DeletedUser.UserName;
     }
 

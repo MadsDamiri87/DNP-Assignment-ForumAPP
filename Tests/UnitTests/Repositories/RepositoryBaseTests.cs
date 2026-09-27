@@ -188,7 +188,7 @@ public class RepositoryBaseTests
             await repository.UpdateAsync(replacement);
 
             // Assert
-            Assert.Equal(PostCount, repository.GetManyAsync().Count());
+            Assert.Equal(PostCount, repository.GetMany().Count());
         }
 
         [Theory]
@@ -223,7 +223,7 @@ public class RepositoryBaseTests
             await repository.DeleteAsync(id);
 
             // Assert
-            Assert.DoesNotContain(repository.GetManyAsync(), post => post.Id == id);
+            Assert.DoesNotContain(repository.GetMany(), post => post.Id == id);
         }
 
         [Fact]
@@ -237,7 +237,7 @@ public class RepositoryBaseTests
             await repository.DeleteAsync(2);
 
             // Assert
-            Assert.Equal(expectedRemaining, repository.GetManyAsync().Count());
+            Assert.Equal(expectedRemaining, repository.GetMany().Count());
         }
 
         [Theory]
@@ -266,7 +266,7 @@ public class RepositoryBaseTests
             PostInMemoryRepository repository = await RepositoryWithPostsAsync(count);
 
             // Act
-            int returned = repository.GetManyAsync().Count();
+            int returned = repository.GetMany().Count();
 
             // Assert
             Assert.Equal(count, returned);
@@ -283,7 +283,7 @@ public class RepositoryBaseTests
             int expectedCount = 2;
 
             // Act
-            int count = repository.GetManyAsync().Count(post => post.UserId == 2);
+            int count = repository.GetMany().Count(post => post.UserId == 2);
 
             // Assert
             Assert.Equal(expectedCount, count);
@@ -304,7 +304,7 @@ public class RepositoryBaseTests
             await first.AddAsync(NewPost());
 
             // Assert
-            Assert.Empty(second.GetManyAsync());
+            Assert.Empty(second.GetMany());
         }
     }
 }

@@ -192,7 +192,7 @@ public class SinglePostViewTests
     {
         // Arrange
         var postRepository = new Mock<IPostRepository>();
-        postRepository.Setup(r => r.GetManyAsync())
+        postRepository.Setup(r => r.GetMany())
             .Returns(new[] { NewPost(1), NewPost(2), NewPost(3) }.AsQueryable());
         var viewWithMock = new SinglePostView(postRepository.Object, comments);
         using var console = new ConsoleSession(id);

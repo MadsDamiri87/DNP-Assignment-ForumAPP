@@ -17,7 +17,7 @@ public class CreatePostView
     
     private bool CheckUserExists(int userId)
     {
-        bool userExists = userRepository.GetManyAsync().Any(user => user.Id == userId);
+        bool userExists = userRepository.GetMany().Any(user => user.Id == userId);
         
         if (!userExists)
         {

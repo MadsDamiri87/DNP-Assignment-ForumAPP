@@ -166,7 +166,7 @@ public class CliAppTests
         {
             // Arrange
             TestForumApp forum = await TestForumApp.CreateSeededAsync();
-            string newPostId = (forum.Posts.GetManyAsync().Max(p => p.Id) + 1).ToString();
+            string newPostId = (forum.Posts.GetMany().Max(p => p.Id) + 1).ToString();
             using var console = new ConsoleSession(
                 "2", "1", "Integration title", "Integration body", "1",
                 "3", newPostId,
@@ -185,7 +185,7 @@ public class CliAppTests
         {
             // Arrange
             TestForumApp forum = await TestForumApp.CreateSeededAsync();
-            List<string> expectedTitles = forum.Posts.GetManyAsync().Select(p => $"Title: {p.Title}").ToList();
+            List<string> expectedTitles = forum.Posts.GetMany().Select(p => $"Title: {p.Title}").ToList();
             using var console = new ConsoleSession("2", "2", "4", "3");
 
             // Act
@@ -200,7 +200,7 @@ public class CliAppTests
         {
             // Arrange
             TestForumApp forum = await TestForumApp.CreateSeededAsync();
-            Comment comment = forum.Comments.GetManyAsync().First(c => c.PostId == 1);
+            Comment comment = forum.Comments.GetMany().First(c => c.PostId == 1);
             using var console = new ConsoleSession("2", "3", "1", "4", "3");
             string expectedComment = $"- {comment.Body}";
 
@@ -216,14 +216,14 @@ public class CliAppTests
         {
             // Arrange
             TestForumApp forum = await TestForumApp.CreateSeededAsync();
-            int expectedPostCount = forum.Posts.GetManyAsync().Count();
+            int expectedPostCount = forum.Posts.GetMany().Count();
             using var console = new ConsoleSession("2", "1", "Title", "Body", "99", "4", "3");
 
             // Act
             await RunAsync(forum);
 
             // Assert
-            Assert.Equal(expectedPostCount, forum.Posts.GetManyAsync().Count());
+            Assert.Equal(expectedPostCount, forum.Posts.GetMany().Count());
         }
 
         [Fact]

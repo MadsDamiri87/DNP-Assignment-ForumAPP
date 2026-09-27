@@ -73,7 +73,7 @@ public abstract class FileRepositoryBase<T> : IRepository<T> where T : IEntity
                ?? throw new InvalidOperationException(NotFoundMessage(id));
     }
     
-    public IQueryable<T> GetManyAsync()
+    public IQueryable<T> GetMany()
     {
         return Deserialize(File.ReadAllText(filePath)).AsQueryable();
     }

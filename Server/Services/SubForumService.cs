@@ -64,7 +64,7 @@ public class SubForumService : ISubForumService
     {
         await subForumRepository.DeleteAsync(id);
 
-        List<Post> postsInSubForum = postRepository.GetManyAsync()
+        List<Post> postsInSubForum = postRepository.GetMany()
             .Where(post => post.SubForumId == id)
             .ToList();
 
@@ -83,7 +83,7 @@ public class SubForumService : ISubForumService
 
     public IEnumerable<SubForumDto> GetMany(string? nameContains = null, int? creatorUserId = null)
     {
-        IQueryable<SubForum> subForums = subForumRepository.GetManyAsync();
+        IQueryable<SubForum> subForums = subForumRepository.GetMany();
 
         if (!string.IsNullOrWhiteSpace(nameContains))
         {
@@ -96,7 +96,7 @@ public class SubForumService : ISubForumService
             subForums = subForums.Where(subForum => subForum.CreatorUserId == creatorUserId.Value);
         }
 
-        Dictionary<int, string> userNames = userRepository.GetManyAsync()
+        Dictionary<int, string> userNames = userRepository.GetMany()
             .ToDictionary(user => user.Id, user => user.UserName);
 
         return subForums
@@ -116,7 +116,7 @@ public class SubForumService : ISubForumService
     {
         string trimmed = name.Trim();
 
-        bool taken = subForumRepository.GetManyAsync()
+        bool taken = subForumRepository.GetMany()
             .Any(subForum => subForum.Id != ignoredSubForumId
                              && subForum.Name.Equals(trimmed, StringComparison.OrdinalIgnoreCase));
 
@@ -140,7 +140,7 @@ public class SubForumService : ISubForumService
 
     private string FindUserName(int userId)
     {
-        User? user = userRepository.GetManyAsync().FirstOrDefault(candidate => candidate.Id == userId);
+        User? user = userRepository.GetMany().FirstOrDefault(candidate => candidate.Id == userId);
         return user?.UserName ?? DeletedUser.UserName;
     }
 

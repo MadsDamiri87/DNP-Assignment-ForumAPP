@@ -29,7 +29,7 @@ public class SinglePostView
             return;
         }
 
-        if (!postRepository.GetManyAsync().Any(post => post.Id == id))
+        if (!postRepository.GetMany().Any(post => post.Id == id))
         {
             Console.WriteLine($"Post with id '{id}' doesn't exist");
             return;
@@ -44,7 +44,7 @@ public class SinglePostView
         Console.WriteLine();
         Console.WriteLine("Comments:");
         
-        IQueryable<Comment> comments = commentRepository.GetManyAsync();
+        IQueryable<Comment> comments = commentRepository.GetMany();
         
         foreach (Comment comment in comments)
         {
