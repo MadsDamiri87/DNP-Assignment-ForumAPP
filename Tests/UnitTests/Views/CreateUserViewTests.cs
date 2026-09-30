@@ -22,7 +22,7 @@ public class CreateUserViewTests
     // Kører før hver test (xUnits svar på JUnits @BeforeEach).
     public CreateUserViewTests()
     {
-        users.Seed(new User { Id = 1, UserName = TakenUserName, PasswordHash = "hash", Email = TakenEmail });
+        users.Seed(new User { Id = 1, UserName = TakenUserName, Password = "hash", Email = TakenEmail });
         view = new CreateUserView(users);
     }
 
@@ -69,7 +69,7 @@ public class CreateUserViewTests
 
         // Assert
         User added = users.Added.Single();
-        Assert.Equal(expected, (added.UserName, added.PasswordHash, added.Email));
+        Assert.Equal(expected, (added.UserName, added.Password, added.Email));
     }
 
     [Fact]
@@ -91,14 +91,14 @@ public class CreateUserViewTests
     {
         // Arrange
         using var console = new ConsoleSession(ValidUserName, ValidPassword, ValidEmail);
-        DateTime before = DateTime.Now;
+        DateTime before = DateTime.UtcNow;
 
         // Act
         await view.CreateUserAsync();
 
         // Assert
         User added = users.Added.Single();
-        Assert.InRange(added.CreatedAt, before, DateTime.Now);
+        Assert.InRange(added.CreatedAt, before, DateTime.UtcNow);
     }
 
     [Fact]

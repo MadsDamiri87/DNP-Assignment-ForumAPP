@@ -16,71 +16,71 @@ public class CommentsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IResult> CreateComment([FromBody] CreateCommentDto request)
+    public async Task<ActionResult<CommentDto>> CreateComment([FromBody] CreateCommentDto request)
     {
         try
         {
             CommentDto created = await commentService.CreateAsync(request);
-            return Results.Created($"/comments/{created.Id}", created);
+            return Created($"/comments/{created.Id}", created);
         }
         catch (ArgumentException e)
         {
-            return Results.BadRequest(e.Message);
+            return BadRequest(e.Message);
         }
     }
 
     [HttpGet("{id:int}")]
-    public async Task<IResult> GetSingleComment([FromRoute] int id)
+    public async Task<ActionResult<CommentDto>> GetSingleComment([FromRoute] int id)
     {
         try
         {
             CommentDto comment = await commentService.GetSingleAsync(id);
-            return Results.Ok(comment);
+            return comment;
         }
         catch (InvalidOperationException e)
         {
-            return Results.NotFound(e.Message);
+            return NotFound(e.Message);
         }
     }
 
     [HttpGet]
-    public IResult GetComments(
+    public ActionResult<IEnumerable<CommentDto>> GetComments(
         [FromQuery] int? postId,
         [FromQuery] int? userId,
         [FromQuery] string? userNameContains)
     {
-        return Results.Ok(commentService.GetMany(postId, userId, userNameContains));
+        return Ok(commentService.GetMany(postId, userId, userNameContains));
     }
 
     [HttpPut("{id:int}")]
-    public async Task<IResult> UpdateComment([FromRoute] int id, [FromBody] UpdateCommentDto request)
+    public async Task<ActionResult<CommentDto>> UpdateComment([FromRoute] int id, [FromBody] UpdateCommentDto request)
     {
         try
         {
             CommentDto updated = await commentService.UpdateAsync(id, request);
-            return Results.Ok(updated);
+            return updated;
         }
         catch (ArgumentException e)
         {
-            return Results.BadRequest(e.Message);
+            return BadRequest(e.Message);
         }
         catch (InvalidOperationException e)
         {
-            return Results.NotFound(e.Message);
+            return NotFound(e.Message);
         }
     }
 
     [HttpDelete("{id:int}")]
-    public async Task<IResult> DeleteComment([FromRoute] int id)
+    public async Task<ActionResult> DeleteComment([FromRoute] int id)
     {
         try
         {
             await commentService.DeleteAsync(id);
-            return Results.NoContent();
+            return NoContent();
         }
         catch (InvalidOperationException e)
         {
-            return Results.NotFound(e.Message);
+            return NotFound(e.Message);
         }
     }
 }

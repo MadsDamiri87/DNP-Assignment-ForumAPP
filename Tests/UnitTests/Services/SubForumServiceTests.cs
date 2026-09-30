@@ -87,7 +87,7 @@ public class SubForumServiceTests
         // Arrange
         users.Seed(new User
         {
-            Id = 1, UserName = "mads", PasswordHash = "hash", Email = "mads@x.dk", CreatedAt = new DateTime(2026, 1, 1)
+            Id = 1, UserName = "mads", Password = "hash", Email = "mads@x.dk", CreatedAt = new DateTime(2026, 1, 1)
         });
 
         // Act

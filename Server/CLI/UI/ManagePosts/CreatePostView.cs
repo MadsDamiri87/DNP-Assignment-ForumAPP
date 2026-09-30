@@ -64,7 +64,7 @@ public class CreatePostView
             Title = title,
             Body = body,
             UserId = userId,
-            CreatedAt =  DateTime.Now
+            CreatedAt =  DateTime.UtcNow
         };
         
         Post createdPost = await postRepository.AddAsync(post);

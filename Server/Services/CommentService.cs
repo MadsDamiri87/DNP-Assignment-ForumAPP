@@ -33,7 +33,7 @@ public class CommentService : ICommentService
             Body = request.Body.Trim(),
             PostId = request.PostId,
             UserId = request.UserId,
-            CreatedAt = DateTime.Now
+            CreatedAt = DateTime.UtcNow
         };
 
         Comment created = await commentRepository.AddAsync(comment);
@@ -89,9 +89,9 @@ public class CommentService : ICommentService
 
         if (!string.IsNullOrWhiteSpace(userNameContains))
         {
-            string filter = userNameContains.Trim();
+            string filter = userNameContains.Trim().ToLower();
             List<int> matchingUserIds = userRepository.GetMany()
-                .Where(user => user.UserName.Contains(filter, StringComparison.OrdinalIgnoreCase))
+                .Where(user => user.UserName.ToLower().Contains(filter))
                 .Select(user => user.Id)
                 .ToList();
 

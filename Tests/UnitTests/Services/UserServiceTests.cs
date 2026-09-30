@@ -37,7 +37,7 @@ public class UserServiceTests
         {
             Id = 1,
             UserName = TakenUserName,
-            PasswordHash = "hash",
+            Password = "hash",
             Email = TakenEmail,
             CreatedAt = new DateTime(2026, 1, 1)
         });
@@ -69,7 +69,7 @@ public class UserServiceTests
 
         // Assert
         User added = Assert.Single(users.Added);
-        Assert.Equal((ValidUserName, ValidPassword, ValidEmail), (added.UserName, added.PasswordHash, added.Email));
+        Assert.Equal((ValidUserName, ValidPassword, ValidEmail), (added.UserName, added.Password, added.Email));
     }
 
     [Fact]
@@ -89,13 +89,13 @@ public class UserServiceTests
     public async Task ShouldSetCreatedAtToNow_WhenUserIsCreated()
     {
         // Arrange
-        DateTime før = DateTime.Now;
+        DateTime før = DateTime.UtcNow;
 
         // Act
         UserDto created = await service.CreateAsync(NewRequest());
 
         // Assert
-        Assert.InRange(created.CreatedAt, før, DateTime.Now);
+        Assert.InRange(created.CreatedAt, før, DateTime.UtcNow);
     }
 
     [Fact]

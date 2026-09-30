@@ -18,82 +18,82 @@ public class SubForumsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IResult> CreateSubForum([FromBody] CreateSubForumDto request)
+    public async Task<ActionResult<SubForumDto>> CreateSubForum([FromBody] CreateSubForumDto request)
     {
         try
         {
             SubForumDto created = await subForumService.CreateAsync(request);
-            return Results.Created($"/subforums/{created.Id}", created);
+            return Created($"/subforums/{created.Id}", created);
         }
         catch (ArgumentException e)
         {
-            return Results.BadRequest(e.Message);
+            return BadRequest(e.Message);
         }
     }
 
     [HttpGet("{id:int}")]
-    public async Task<IResult> GetSingleSubForum([FromRoute] int id)
+    public async Task<ActionResult<SubForumDto>> GetSingleSubForum([FromRoute] int id)
     {
         try
         {
             SubForumDto subForum = await subForumService.GetSingleAsync(id);
-            return Results.Ok(subForum);
+            return subForum;
         }
         catch (InvalidOperationException e)
         {
-            return Results.NotFound(e.Message);
+            return NotFound(e.Message);
         }
     }
 
     [HttpGet]
-    public IResult GetSubForums([FromQuery] string? nameContains, [FromQuery] int? creatorUserId)
+    public ActionResult<IEnumerable<SubForumDto>> GetSubForums([FromQuery] string? nameContains, [FromQuery] int? creatorUserId)
     {
-        return Results.Ok(subForumService.GetMany(nameContains, creatorUserId));
+        return Ok(subForumService.GetMany(nameContains, creatorUserId));
     }
 
     [HttpGet("{id:int}/posts")]
-    public async Task<IResult> GetPostsForSubForum([FromRoute] int id)
+    public async Task<ActionResult<IEnumerable<PostDto>>> GetPostsForSubForum([FromRoute] int id)
     {
         try
         {
             await subForumService.GetSingleAsync(id);
-            return Results.Ok(postService.GetMany(subForumId: id));
+            return Ok(postService.GetMany(subForumId: id));
         }
         catch (InvalidOperationException e)
         {
-            return Results.NotFound(e.Message);
+            return NotFound(e.Message);
         }
     }
 
     [HttpPut("{id:int}")]
-    public async Task<IResult> UpdateSubForum([FromRoute] int id, [FromBody] UpdateSubForumDto request)
+    public async Task<ActionResult<SubForumDto>> UpdateSubForum([FromRoute] int id, [FromBody] UpdateSubForumDto request)
     {
         try
         {
             SubForumDto updated = await subForumService.UpdateAsync(id, request);
-            return Results.Ok(updated);
+            return updated;
         }
         catch (ArgumentException e)
         {
-            return Results.BadRequest(e.Message);
+            return BadRequest(e.Message);
         }
         catch (InvalidOperationException e)
         {
-            return Results.NotFound(e.Message);
+            return NotFound(e.Message);
         }
     }
 
     [HttpDelete("{id:int}")]
-    public async Task<IResult> DeleteSubForum([FromRoute] int id)
+    public async Task<ActionResult> DeleteSubForum([FromRoute] int id)
     {
         try
         {
             await subForumService.DeleteAsync(id);
-            return Results.NoContent();
+            return NoContent();
         }
         catch (InvalidOperationException e)
         {
-            return Results.NotFound(e.Message);
+            return NotFound(e.Message);
         }
     }
 }

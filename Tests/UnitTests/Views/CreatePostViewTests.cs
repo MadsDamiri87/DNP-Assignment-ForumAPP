@@ -29,7 +29,7 @@ public class CreatePostViewTests
     {
         Id = id,
         UserName = $"user{id}",
-        PasswordHash = "hash",
+        Password = "hash",
         Email = $"user{id}@x.dk"
     };
 

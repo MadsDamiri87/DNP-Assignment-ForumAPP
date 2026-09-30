@@ -59,7 +59,7 @@ Repository-laget abstraherer data-adgang for hver entity. Hvert repository-inter
 - `UpdateAsync`
 - `DeleteAsync`
 - `GetSingleAsync`
-- `GetManyAsync`
+- `GetMany`
 
 Der findes et repository-interface for hver entity:
 

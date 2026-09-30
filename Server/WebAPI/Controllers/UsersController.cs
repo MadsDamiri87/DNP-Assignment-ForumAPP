@@ -16,68 +16,68 @@ public class UsersController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IResult> CreateUser([FromBody] CreateUserDto request)
+    public async Task<ActionResult<UserDto>> CreateUser([FromBody] CreateUserDto request)
     {
         try
         {
             UserDto created = await userService.CreateAsync(request);
-            return Results.Created($"/users/{created.Id}", created);
+            return Created($"/users/{created.Id}", created);
         }
         catch (ArgumentException e)
         {
-            return Results.BadRequest(e.Message);
+            return BadRequest(e.Message);
         }
     }
 
     [HttpGet("{id:int}")]
-    public async Task<IResult> GetSingleUser([FromRoute] int id)
+    public async Task<ActionResult<UserDto>> GetSingleUser([FromRoute] int id)
     {
         try
         {
             UserDto user = await userService.GetSingleAsync(id);
-            return Results.Ok(user);
+            return user;
         }
         catch (InvalidOperationException e)
         {
-            return Results.NotFound(e.Message);
+            return NotFound(e.Message);
         }
     }
 
     [HttpGet]
-    public IResult GetUsers([FromQuery] string? userNameContains)
+    public ActionResult<IEnumerable<UserDto>> GetUsers([FromQuery] string? userNameContains)
     {
-        return Results.Ok(userService.GetMany(userNameContains));
+        return Ok(userService.GetMany(userNameContains));
     }
 
     [HttpPut("{id:int}")]
-    public async Task<IResult> UpdateUser([FromRoute] int id, [FromBody] UpdateUserDto request)
+    public async Task<ActionResult<UserDto>> UpdateUser([FromRoute] int id, [FromBody] UpdateUserDto request)
     {
         try
         {
             UserDto updated = await userService.UpdateAsync(id, request);
-            return Results.Ok(updated);
+            return updated;
         }
         catch (ArgumentException e)
         {
-            return Results.BadRequest(e.Message);
+            return BadRequest(e.Message);
         }
         catch (InvalidOperationException e)
         {
-            return Results.NotFound(e.Message);
+            return NotFound(e.Message);
         }
     }
 
     [HttpDelete("{id:int}")]
-    public async Task<IResult> DeleteUser([FromRoute] int id)
+    public async Task<ActionResult> DeleteUser([FromRoute] int id)
     {
         try
         {
             await userService.DeleteAsync(id);
-            return Results.NoContent();
+            return NoContent();
         }
         catch (InvalidOperationException e)
         {
-            return Results.NotFound(e.Message);
+            return NotFound(e.Message);
         }
     }
 }

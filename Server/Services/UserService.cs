@@ -23,9 +23,9 @@ public class UserService : IUserService
         User user = new()
         {
             UserName = request.UserName.Trim(),
-            PasswordHash = request.Password,
+            Password = request.Password,
             Email = request.Email.Trim(),
-            CreatedAt = DateTime.Now
+            CreatedAt = DateTime.UtcNow
         };
 
         User created = await userRepository.AddAsync(user);
@@ -45,7 +45,7 @@ public class UserService : IUserService
         {
             Id = existing.Id,
             UserName = request.UserName.Trim(),
-            PasswordHash = request.Password,
+            Password = request.Password,
             Email = request.Email.Trim(),
             CreatedAt = existing.CreatedAt
         };
@@ -71,8 +71,8 @@ public class UserService : IUserService
 
         if (!string.IsNullOrWhiteSpace(userNameContains))
         {
-            string filter = userNameContains.Trim();
-            users = users.Where(user => user.UserName.Contains(filter, StringComparison.OrdinalIgnoreCase));
+            string filter = userNameContains.Trim().ToLower();
+            users = users.Where(user => user.UserName.ToLower().Contains(filter));
         }
 
         return users.Select(ToDto).ToList();
@@ -92,7 +92,7 @@ public class UserService : IUserService
     {
         bool taken = userRepository.GetMany()
             .Any(user => user.Id != ignoredUserId
-                         && user.UserName.Equals(userName.Trim(), StringComparison.OrdinalIgnoreCase));
+                         && user.UserName.ToLower() == userName.Trim().ToLower());
 
         if (taken)
         {
@@ -104,7 +104,7 @@ public class UserService : IUserService
     {
         bool taken = userRepository.GetMany()
             .Any(user => user.Id != ignoredUserId
-                         && user.Email.Equals(email.Trim(), StringComparison.OrdinalIgnoreCase));
+                         && user.Email.ToLower() == email.Trim().ToLower());
 
         if (taken)
         {

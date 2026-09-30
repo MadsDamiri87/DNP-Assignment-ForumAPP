@@ -33,7 +33,7 @@ public class SubForumService : ISubForumService
             Name = request.Name.Trim(),
             Description = request.Description.Trim(),
             CreatorUserId = request.CreatorUserId,
-            CreatedAt = DateTime.Now
+            CreatedAt = DateTime.UtcNow
         };
 
         SubForum created = await subForumRepository.AddAsync(subForum);
@@ -62,8 +62,6 @@ public class SubForumService : ISubForumService
 
     public async Task DeleteAsync(int id)
     {
-        await subForumRepository.DeleteAsync(id);
-
         List<Post> postsInSubForum = postRepository.GetMany()
             .Where(post => post.SubForumId == id)
             .ToList();
@@ -73,6 +71,7 @@ public class SubForumService : ISubForumService
             post.SubForumId = null;
             await postRepository.UpdateAsync(post);
         }
+        await subForumRepository.DeleteAsync(id);
     }
 
     public async Task<SubForumDto> GetSingleAsync(int id)
@@ -87,8 +86,8 @@ public class SubForumService : ISubForumService
 
         if (!string.IsNullOrWhiteSpace(nameContains))
         {
-            string filter = nameContains.Trim();
-            subForums = subForums.Where(subForum => subForum.Name.Contains(filter, StringComparison.OrdinalIgnoreCase));
+            string filter = nameContains.Trim().ToLower();
+            subForums = subForums.Where(subForum => subForum.Name.ToLower().Contains(filter));
         }
 
         if (creatorUserId.HasValue)
@@ -118,7 +117,7 @@ public class SubForumService : ISubForumService
 
         bool taken = subForumRepository.GetMany()
             .Any(subForum => subForum.Id != ignoredSubForumId
-                             && subForum.Name.Equals(trimmed, StringComparison.OrdinalIgnoreCase));
+                             && subForum.Name.ToLower() == trimmed.ToLower());
 
         if (taken)
         {

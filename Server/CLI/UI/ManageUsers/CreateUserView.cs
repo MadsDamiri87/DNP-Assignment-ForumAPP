@@ -69,9 +69,9 @@ public class CreateUserView
         User newUser = new User
         {
             UserName = inputUserName,
-            PasswordHash = inputPassword,
+            Password = inputPassword,
             Email = inputEmail,
-            CreatedAt = DateTime.Now
+            CreatedAt = DateTime.UtcNow
         };
         
         User createdUser = await userRepository.AddAsync(newUser);

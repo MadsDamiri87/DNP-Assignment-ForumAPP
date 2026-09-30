@@ -37,7 +37,7 @@ public class PostService : IPostService
             Body = request.Body.Trim(),
             UserId = request.UserId,
             SubForumId = request.SubForumId,
-            CreatedAt = DateTime.Now
+            CreatedAt = DateTime.UtcNow
         };
 
         Post created = await postRepository.AddAsync(post);
@@ -67,7 +67,6 @@ public class PostService : IPostService
 
     public async Task DeleteAsync(int id)
     {
-        await postRepository.DeleteAsync(id);
 
         List<int> commentIds = commentRepository.GetMany()
             .Where(comment => comment.PostId == id)
@@ -78,6 +77,7 @@ public class PostService : IPostService
         {
             await commentRepository.DeleteAsync(commentId);
         }
+        await postRepository.DeleteAsync(id);
     }
 
     public async Task<PostDto> GetSingleAsync(int id)
@@ -96,8 +96,8 @@ public class PostService : IPostService
 
         if (!string.IsNullOrWhiteSpace(titleContains))
         {
-            string filter = titleContains.Trim();
-            posts = posts.Where(post => post.Title.Contains(filter, StringComparison.OrdinalIgnoreCase));
+            string filter = titleContains.Trim().ToLower();
+            posts = posts.Where(post => post.Title.ToLower().Contains(filter));
         }
 
         if (userId.HasValue)
@@ -112,9 +112,9 @@ public class PostService : IPostService
 
         if (!string.IsNullOrWhiteSpace(userNameContains))
         {
-            string filter = userNameContains.Trim();
+            string filter = userNameContains.Trim().ToLower();
             List<int> matchingUserIds = userRepository.GetMany()
-                .Where(user => user.UserName.Contains(filter, StringComparison.OrdinalIgnoreCase))
+                .Where(user => user.UserName.ToLower().Contains(filter))
                 .Select(user => user.Id)
                 .ToList();
 
