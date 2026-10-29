@@ -1,0 +1,166 @@
+@page "/posts/{Id:int}"
+@inject IPostService PostService
+@inject ICommentService CommentService
+@inject IUserService UserService
+@inject NavigationManager NavigationManager
+
+<PageTitle>@(post?.Title ?? "Post")</PageTitle>
+
+@if (loadError is not null)
+{
+    <div class="alert alert-danger">@loadError</div>
+    <a class="btn btn-secondary" href="posts">Back to posts</a>
+}
+else if (post is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <h1>@post.Title</h1>
+
+    <p class="text-muted">
+        By @post.AuthorUserName &middot; @post.CreatedAt.ToLocalTime().ToString("g")
+    </p>
+
+    <p style="white-space: pre-wrap">@post.Body</p>
+
+    <hr/>
+
+    <h2>Comments (@comments.Count)</h2>
+
+    @if (comments.Count == 0)
+    {
+        <p>No comments yet.</p>
+    }
+    else
+    {
+        <ul class="list-group mb-4">
+            @foreach (CommentDto comment in comments)
+            {
+                <li class="list-group-item">
+                    <div class="fw-semibold">@comment.AuthorUserName</div>
+                    <div style="white-space: pre-wrap">@comment.Body</div>
+                    <small class="text-muted">@comment.CreatedAt.ToLocalTime().ToString("g")</small>
+                </li>
+            }
+        </ul>
+    }
+
+    <h3>Add a comment</h3>
+
+    @if (users.Count == 0)
+    {
+        <div class="alert alert-warning">
+            There are no users yet. <a href="users/create">Create a user</a> before commenting.
+        </div>
+    }
+    else
+    {
+        <div class="mb-2">
+            <label class="form-label" for="commentAuthor">Author</label>
+            <select id="commentAuthor" class="form-select" @bind="newCommentUserId">
+                @foreach (UserDto user in users)
+                {
+                    <option value="@user.Id">@user.UserName</option>
+                }
+            </select>
+        </div>
+
+        <div class="mb-2">
+            <label class="form-label" for="commentBody">Comment</label>
+            <textarea id="commentBody" class="form-control" rows="3" @bind="newCommentBody"></textarea>
+        </div>
+
+        <button class="btn btn-primary" @onclick="AddCommentAsync" disabled="@isSaving">Add comment</button>
+
+        @if (commentError is not null)
+        {
+            <div class="alert alert-danger mt-3">@commentError</div>
+        }
+    }
+
+    <hr/>
+
+    <a class="btn btn-secondary" href="posts">Back to posts</a>
+    <button class="btn btn-outline-danger" @onclick="DeletePostAsync">Delete post</button>
+}
+
+@code {
+    private PostDto? post;
+    private List<CommentDto> comments = [];
+    private List<UserDto> users = [];
+
+    private string newCommentBody = string.Empty;
+    private int newCommentUserId;
+
+    private string? loadError;
+    private string? commentError;
+    private bool isSaving;
+
+    [Parameter] public int Id { get; set; }
+
+    protected override Task OnParametersSetAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        loadError = null;
+
+        try
+        {
+            post = await PostService.GetSingleAsync(Id);
+            comments = await CommentService.GetCommentsAsync(postId: Id);
+            users = await UserService.GetUsersAsync();
+
+            if (newCommentUserId == 0 && users.Count > 0)
+            {
+                newCommentUserId = users[0].Id;
+            }
+        }
+        catch (Exception e)
+        {
+            post = null;
+            loadError = e.Message;
+        }
+    }
+
+    private async Task AddCommentAsync()
+    {
+        commentError = null;
+        isSaving = true;
+
+        try
+        {
+            CreateCommentDto request = new()
+            {
+                Body = newCommentBody,
+                PostId = Id,
+                UserId = newCommentUserId
+            };
+
+            comments.Add(await CommentService.AddAsync(request));
+            newCommentBody = string.Empty;
+        }
+        catch (Exception e)
+        {
+            commentError = e.Message;
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task DeletePostAsync()
+    {
+        try
+        {
+            await PostService.DeleteAsync(Id);
+            NavigationManager.NavigateTo("posts");
+        }
+        catch (Exception e)
+        {
+            loadError = e.Message;
+        }
+    }
+}

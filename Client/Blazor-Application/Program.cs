@@ -1,10 +1,23 @@
 using Blazor_Application.Components;
+using Blazor_Application.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+string webApiBaseAddress = builder.Configuration["WebApiBaseAddress"] ?? "http://localhost:5028/";
+
+builder.Services.AddScoped(sp => new HttpClient
+{
+    BaseAddress = new Uri(webApiBaseAddress)
+});
+
+builder.Services.AddScoped<IUserService, HttpUserService>();
+builder.Services.AddScoped<IPostService, HttpPostService>();
+builder.Services.AddScoped<ICommentService, HttpCommentService>();
+builder.Services.AddScoped<ISubForumService, HttpSubForumService>();
 
 var app = builder.Build();
 
@@ -14,10 +27,10 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
+    app.UseHttpsRedirection();
 }
 
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
-app.UseHttpsRedirection();
 
 app.UseAntiforgery();
 

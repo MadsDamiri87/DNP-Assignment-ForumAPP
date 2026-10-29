@@ -1,6 +1,10 @@
-﻿namespace Blazor_Application.Services;
+using ApiContracts;
 
-public interface ISubForumService
+namespace Blazor_Application.Services;
+
+public interface ISubForumService : IHttpService<SubForumDto, CreateSubForumDto, UpdateSubForumDto>
 {
-    
+    Task<List<SubForumDto>> GetSubForumsAsync(
+        string? nameContains = null,
+        int? creatorUserId = null);
 }

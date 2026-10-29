@@ -1,6 +1,11 @@
-﻿namespace Blazor_Application.Services;
+using ApiContracts;
 
-public class ICommentService
+namespace Blazor_Application.Services;
+
+public interface ICommentService : IHttpService<CommentDto, CreateCommentDto, UpdateCommentDto>
 {
-    
+    Task<List<CommentDto>> GetCommentsAsync(
+        int? postId = null,
+        int? userId = null,
+        string? userNameContains = null);
 }

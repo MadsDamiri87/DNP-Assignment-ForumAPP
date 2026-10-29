@@ -1,0 +1,78 @@
+@page "/users"
+@inject IUserService UserService
+
+<PageTitle>Users</PageTitle>
+
+<h1>Users</h1>
+
+<div class="row g-2 align-items-center mb-3">
+    <div class="col-auto">
+        <input class="form-control" placeholder="Search in username" @bind="userNameFilter" @bind:event="oninput"/>
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-outline-secondary" @onclick="LoadUsersAsync">Search</button>
+    </div>
+    <div class="col-auto">
+        <a class="btn btn-primary" href="users/create">New user</a>
+    </div>
+</div>
+
+@if (errorMessage is not null)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+else if (users is null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (users.Count == 0)
+{
+    <p>No users found.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Joined</th>
+            <th>Posts</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (UserDto user in users)
+        {
+            <tr>
+                <td>@user.UserName</td>
+                <td>@user.Email</td>
+                <td>@user.CreatedAt.ToLocalTime().ToString("g")</td>
+                <td><a href="@($"posts?userId={user.Id}")">Show posts</a></td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<UserDto>? users;
+    private string userNameFilter = string.Empty;
+    private string? errorMessage;
+
+    protected override Task OnInitializedAsync() => LoadUsersAsync();
+
+    private async Task LoadUsersAsync()
+    {
+        errorMessage = null;
+
+        try
+        {
+            users = await UserService.GetUsersAsync(userNameFilter);
+        }
+        catch (Exception e)
+        {
+            users = null;
+            errorMessage = e.Message;
+        }
+    }
+}

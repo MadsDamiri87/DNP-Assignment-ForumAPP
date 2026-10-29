@@ -1,0 +1,66 @@
+@page "/users/create"
+@inject IUserService UserService
+@inject NavigationManager NavigationManager
+
+<PageTitle>New user</PageTitle>
+
+<h1>New user</h1>
+
+<div class="mb-3">
+    <label class="form-label" for="userName">Username</label>
+    <input id="userName" class="form-control" @bind="userName"/>
+</div>
+
+<div class="mb-3">
+    <label class="form-label" for="email">Email</label>
+    <input id="email" class="form-control" type="email" @bind="email"/>
+</div>
+
+<div class="mb-3">
+    <label class="form-label" for="password">Password</label>
+    <input id="password" class="form-control" type="password" @bind="password"/>
+</div>
+
+<button class="btn btn-primary" @onclick="CreateUserAsync" disabled="@isSaving">Create user</button>
+<a class="btn btn-secondary" href="users">Cancel</a>
+
+@if (saveError is not null)
+{
+    <div class="alert alert-danger mt-3">@saveError</div>
+}
+
+@code {
+    private string userName = string.Empty;
+    private string email = string.Empty;
+    private string password = string.Empty;
+
+    private string? saveError;
+    private bool isSaving;
+
+    private async Task CreateUserAsync()
+    {
+        saveError = null;
+        isSaving = true;
+
+        try
+        {
+            CreateUserDto request = new()
+            {
+                UserName = userName,
+                Password = password,
+                Email = email
+            };
+
+            await UserService.AddAsync(request);
+            NavigationManager.NavigateTo("users");
+        }
+        catch (Exception e)
+        {
+            saveError = e.Message;
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+}

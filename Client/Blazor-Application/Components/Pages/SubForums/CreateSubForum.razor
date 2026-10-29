@@ -1,0 +1,105 @@
+@page "/subforums/create"
+@inject ISubForumService SubForumService
+@inject IUserService UserService
+@inject NavigationManager NavigationManager
+
+<PageTitle>New sub-forum</PageTitle>
+
+<h1>New sub-forum</h1>
+
+@if (loadError is not null)
+{
+    <div class="alert alert-danger">@loadError</div>
+}
+else if (users.Count == 0)
+{
+    <div class="alert alert-warning">
+        There are no users yet. <a href="users/create">Create a user</a> before creating a sub-forum.
+    </div>
+}
+else
+{
+    <div class="mb-3">
+        <label class="form-label" for="name">Name</label>
+        <input id="name" class="form-control" @bind="name"/>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label" for="description">Description</label>
+        <textarea id="description" class="form-control" rows="3" @bind="description"></textarea>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label" for="creator">Created by</label>
+        <select id="creator" class="form-select" @bind="creatorUserId">
+            @foreach (UserDto user in users)
+            {
+                <option value="@user.Id">@user.UserName</option>
+            }
+        </select>
+    </div>
+
+    <button class="btn btn-primary" @onclick="CreateSubForumAsync" disabled="@isSaving">Create sub-forum</button>
+    <a class="btn btn-secondary" href="subforums">Cancel</a>
+
+    @if (saveError is not null)
+    {
+        <div class="alert alert-danger mt-3">@saveError</div>
+    }
+}
+
+@code {
+    private List<UserDto> users = [];
+
+    private string name = string.Empty;
+    private string description = string.Empty;
+    private int creatorUserId;
+
+    private string? loadError;
+    private string? saveError;
+    private bool isSaving;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            users = await UserService.GetUsersAsync();
+
+            if (users.Count > 0)
+            {
+                creatorUserId = users[0].Id;
+            }
+        }
+        catch (Exception e)
+        {
+            loadError = e.Message;
+        }
+    }
+
+    private async Task CreateSubForumAsync()
+    {
+        saveError = null;
+        isSaving = true;
+
+        try
+        {
+            CreateSubForumDto request = new()
+            {
+                Name = name,
+                Description = description,
+                CreatorUserId = creatorUserId
+            };
+
+            await SubForumService.AddAsync(request);
+            NavigationManager.NavigateTo("subforums");
+        }
+        catch (Exception e)
+        {
+            saveError = e.Message;
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+}

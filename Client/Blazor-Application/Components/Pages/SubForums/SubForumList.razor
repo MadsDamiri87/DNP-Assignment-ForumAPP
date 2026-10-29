@@ -1,0 +1,76 @@
+@page "/subforums"
+@inject ISubForumService SubForumService
+
+<PageTitle>Sub-forums</PageTitle>
+
+<h1>Sub-forums</h1>
+
+<div class="row g-2 align-items-center mb-3">
+    <div class="col-auto">
+        <input class="form-control" placeholder="Search in name" @bind="nameFilter" @bind:event="oninput"/>
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-outline-secondary" @onclick="LoadSubForumsAsync">Search</button>
+    </div>
+    <div class="col-auto">
+        <a class="btn btn-primary" href="subforums/create">New sub-forum</a>
+    </div>
+</div>
+
+@if (errorMessage is not null)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+else if (subForums is null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (subForums.Count == 0)
+{
+    <p>No sub-forums found.</p>
+}
+else
+{
+    <table class="table table-hover">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Created by</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (SubForumDto subForum in subForums)
+        {
+            <tr>
+                <td><a href="@($"posts?subForumId={subForum.Id}")">@subForum.Name</a></td>
+                <td>@subForum.Description</td>
+                <td>@subForum.CreatorUserName</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<SubForumDto>? subForums;
+    private string nameFilter = string.Empty;
+    private string? errorMessage;
+
+    protected override Task OnInitializedAsync() => LoadSubForumsAsync();
+
+    private async Task LoadSubForumsAsync()
+    {
+        errorMessage = null;
+
+        try
+        {
+            subForums = await SubForumService.GetSubForumsAsync(nameFilter);
+        }
+        catch (Exception e)
+        {
+            subForums = null;
+            errorMessage = e.Message;
+        }
+    }
+}

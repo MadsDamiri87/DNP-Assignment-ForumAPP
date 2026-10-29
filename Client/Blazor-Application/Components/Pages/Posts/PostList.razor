@@ -1,0 +1,110 @@
+@page "/posts"
+@inject IPostService PostService
+@inject ISubForumService SubForumService
+@inject IUserService UserService
+
+<PageTitle>Posts</PageTitle>
+
+<h1>@heading</h1>
+
+<div class="row g-2 align-items-center mb-3">
+    <div class="col-auto">
+        <input class="form-control" placeholder="Search in title" @bind="titleFilter" @bind:event="oninput"/>
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-outline-secondary" @onclick="LoadPostsAsync">Search</button>
+    </div>
+    <div class="col-auto">
+        <a class="btn btn-primary" href="posts/create">New post</a>
+    </div>
+    @if (SubForumId.HasValue || UserId.HasValue)
+    {
+        <div class="col-auto">
+            <a class="btn btn-link" href="posts">Show all posts</a>
+        </div>
+    }
+</div>
+
+@if (errorMessage is not null)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+else if (posts is null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (posts.Count == 0)
+{
+    <p>No posts found.</p>
+}
+else
+{
+    <table class="table table-hover">
+        <thead>
+        <tr>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Created</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (PostDto post in posts)
+        {
+            <tr>
+                <td><a href="posts/@post.Id">@post.Title</a></td>
+                <td>@post.AuthorUserName</td>
+                <td>@post.CreatedAt.ToLocalTime().ToString("g")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<PostDto>? posts;
+    private string titleFilter = string.Empty;
+    private string heading = "Posts";
+    private string? errorMessage;
+
+    [SupplyParameterFromQuery] public int? SubForumId { get; set; }
+    [SupplyParameterFromQuery] public int? UserId { get; set; }
+
+    protected override Task OnParametersSetAsync() => LoadPostsAsync();
+
+    private async Task LoadPostsAsync()
+    {
+        errorMessage = null;
+
+        try
+        {
+            posts = await PostService.GetPostsAsync(
+                titleContains: titleFilter,
+                userId: UserId,
+                subForumId: SubForumId);
+
+            heading = await BuildHeadingAsync();
+        }
+        catch (Exception e)
+        {
+            posts = null;
+            errorMessage = e.Message;
+        }
+    }
+
+    private async Task<string> BuildHeadingAsync()
+    {
+        if (SubForumId.HasValue)
+        {
+            SubForumDto subForum = await SubForumService.GetSingleAsync(SubForumId.Value);
+            return $"Posts in {subForum.Name}";
+        }
+
+        if (UserId.HasValue)
+        {
+            UserDto user = await UserService.GetSingleAsync(UserId.Value);
+            return $"Posts by {user.UserName}";
+        }
+
+        return "Posts";
+    }
+}

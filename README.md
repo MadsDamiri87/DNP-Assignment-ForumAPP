@@ -1,9 +1,9 @@
 # DNP Assignment - ForumApp
-2026-09-05 (opdateret 2026-09-26)
+2026-09-05 (opdateret 2026-10-18)
 
 Dette repository indeholder en forum-applikation til kurset **DNP - .NET Programmering**. Projektet tager udgangspunkt i et Reddit-lignende forum, hvor brugere kan oprette posts, skrive kommentarer og organisere posts i subforums.
 
-Applikationen er bygget op over flere assignments: domænemodel og repositories, en Command Line Interface, filbaseret persistence og nu en Web API, som eksterne klienter kan bruge til at læse og ændre forummets data. Der er endnu ikke en Blazor frontend eller database.
+Applikationen er bygget op over flere assignments: domænemodel og repositories, en Command Line Interface, filbaseret persistence, en Web API og nu en Blazor-frontend, som brugerne kan betjene forummet fra. Der er endnu ikke en database.
 
 ## Domænemodel
 Domænemodellen viser de centrale entities i systemet og relationerne mellem dem.
@@ -33,6 +33,8 @@ DNP-Assignment-ForumAPP/
 │   ├── Services/                Forretningslogik, validering og mapping til DTO'er
 │   ├── CLI/                     Command Line Interface (Assignment 2)
 │   └── WebAPI/                  Controllere, Program.cs og WebAPI.http
+├── Client/
+│   └── Blazor-Application/      Blazor-frontend: Components/ (sider) og Services/ (HTTP-kald)
 └── Tests/                       Unit tests og integration tests (xUnit + Moq)
 ```
 
@@ -126,7 +128,43 @@ Controllerne indeholder kun HTTP-delen: de tager imod request, kalder en service
 Opgaven beskriver forretningslogik i controlleren og et lag mere som en mulighed. Her er det lag med, så controllerne holdes tynde og servicerne kan unit-testes uden HTTP.
 
 ### Passwords
-Passwords gemmes, som de bliver sendt ind, i feltet `PasswordHash`. Selvom variablen hedder paswordhasser er dette ikke implementeret. `UserDto` indeholder ikke password, så det sendes aldrig tilbage til klienterne. Det samme gælder i CLI'en.
+Passwords gemmes i klartekst i feltet `User.Password`, præcis som de sendes ind. Hashing er ikke implementeret. `UserDto` indeholder ikke password, så det sendes aldrig tilbage til klienterne. Det samme gælder i CLI'en.
+
+## Blazor frontend
+Frontenden er en **Blazor Web App** med interactive server rendering. Den har ingen adgang til repositories eller entities — al data hentes over HTTP fra Web API'en, og de DTO'er, der sendes frem og tilbage, er de samme fra `ApiContracts`.
+
+### Kør den
+Web API'en skal køre først, derefter Blazor-appen:
+```
+dotnet run --project Server/WebAPI --launch-profile http
+dotnet run --project Client/Blazor-Application --launch-profile http
+```
+
+Frontenden ligger på `http://localhost:5050`. Adressen på API'et står i `appsettings.json` under `WebApiBaseAddress`, så den kan ændres uden at kodes om.
+
+### Sider
+| Side | Adresse |
+|---|---|
+| Forside med links | `/` |
+| Opret bruger | `/users/create` |
+| Liste over brugere | `/users` |
+| Opret post | `/posts/create` |
+| Liste over posts (titel og forfatter) | `/posts` |
+| En post med body, forfatter og kommentarer, samt felt til ny kommentar | `/posts/{id}` |
+| Opret subforum | `/subforums/create` |
+| Liste over subforums | `/subforums` |
+
+Listerne kan filtreres, og `/posts` kan desuden begrænses til ét subforum eller én forfatter via query-parametre.
+
+### Services
+Mappen `Services` indeholder et interface og en `Http...`-implementation pr. entity, som registreres med dependency injection i `Program.cs`. Siderne kender kun interfacet.
+
+De fire CRUD-kald er ens for alle entities, så de ligger i den generiske `HttpServiceBase<TDto, TCreate, TUpdate>`, der kender sin egen ressource-sti (`users`, `posts`, ...). Det er samme opbygning som `IService<TDto, TCreate, TUpdate>` på serveren og `IRepository<T>` i repository-laget. Hver konkret service er derfor kun en konstruktør plus sin egen filtrerings-metode.
+
+Fejl fra API'et bliver kastet videre som en exception med serverens egen besked, og siderne viser beskeden i en rød boks i stedet for at crashe.
+
+### Bruger
+Der er ingen login endnu. Hvor en post, kommentar eller et subforum skal have en forfatter, vælges brugeren i en dropdown. Når autentificering kommer i assignment 6, erstattes dropdownen af den bruger, der er logget ind.
 
 ## Tests
 Testprojektet bruger xUnit og Moq. Testene er delt i:
@@ -139,6 +177,7 @@ Testprojektet bruger xUnit og Moq. Testene er delt i:
 - C#
 - .NET
 - ASP.NET Core Web API med controllere
+- Blazor Web App (interactive server rendering) med `HttpClient`
 - Swagger (Swashbuckle) til dokumentation af API'et
 - Class Library projects
 - Asynkrone repository-metoder med `Task`
@@ -157,11 +196,11 @@ Implementeret:
 - Command Line Interface
 - Web API med controllere, service-lag og DTO'er
 - Filtrering på liste-endpoints og nested routes for kommentarer og posts
+- Blazor frontend med sider til brugere, posts, kommentarer og subforums
 - Unit tests og integration tests
 
 Ikke implementeret endnu:
 
-- Blazor frontend
 - Entity Framework Core
 - SQLite database
 - Hashing af passwords

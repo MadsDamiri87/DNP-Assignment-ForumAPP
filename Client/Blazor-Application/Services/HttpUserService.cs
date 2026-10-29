@@ -1,23 +1,13 @@
-﻿using ApiContracts;
+using ApiContracts;
 
 namespace Blazor_Application.Services;
 
-public class HttpUserService
+public class HttpUserService : HttpServiceBase<UserDto, CreateUserDto, UpdateUserDto>, IUserService
 {
-    private readonly HttpClient client;
-
-    public HttpUserService(HttpClient client)
+    public HttpUserService(HttpClient client) : base(client, "users")
     {
-        this.client = client;
     }
 
-    public Task<UserDto> AddUserAsync(CreateUserDto request)
-    {
-        
-    }
-    
-    public Task UpdateUserAsync(int id, UpdateUserDto  request)
-    {
-        
-    }
+    public Task<List<UserDto>> GetUsersAsync(string? userNameContains = null) =>
+        GetManyAsync(("userNameContains", userNameContains));
 }
