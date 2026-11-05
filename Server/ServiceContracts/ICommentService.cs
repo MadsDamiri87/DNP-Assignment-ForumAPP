@@ -2,7 +2,7 @@
 
 namespace ServiceContracts;
 
-public interface ICommentService : IService<CommentDto, CreateCommentDto, UpdateCommentDto>
+public interface ICommentService : IAuthoredService<CommentDto, CreateCommentDto, UpdateCommentDto>
 {
     IEnumerable<CommentDto> GetMany(
         int? postId = null,

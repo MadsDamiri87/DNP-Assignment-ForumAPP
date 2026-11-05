@@ -5,10 +5,14 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
     </PropertyGroup>
-
+    
     <ItemGroup>
-      <Folder Include="CommentDTOs\" />
-      <Folder Include="PostDTOs\" />
+        <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="10.0.13"/>
+    </ItemGroup>
+    
+    <ItemGroup>
+        <Folder Include="CommentDTOs\"/>
+        <Folder Include="PostDTOs\"/>
     </ItemGroup>
 
 </Project>

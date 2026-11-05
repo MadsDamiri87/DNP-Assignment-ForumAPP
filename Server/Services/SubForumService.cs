@@ -21,18 +21,18 @@ public class SubForumService : ISubForumService
         this.postRepository = postRepository;
     }
 
-    public async Task<SubForumDto> CreateAsync(CreateSubForumDto request)
+    public async Task<SubForumDto> CreateAsync(CreateSubForumDto request, int userId)
     {
         ValidateFields(request.Name, request.Description);
         EnsureNameIsAvailable(request.Name);
 
-        User creator = await GetExistingUserAsync(request.CreatorUserId);
+        User creator = await GetExistingUserAsync(userId);
 
         SubForum subForum = new()
         {
             Name = request.Name.Trim(),
             Description = request.Description.Trim(),
-            CreatorUserId = request.CreatorUserId,
+            CreatorUserId = userId,
             CreatedAt = DateTime.UtcNow
         };
 

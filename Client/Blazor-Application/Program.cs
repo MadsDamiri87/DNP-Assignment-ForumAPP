@@ -1,5 +1,8 @@
-using Blazor_Application.Components;
+using ApiContracts.Auth;
+using Blazor_Application.Auth;
 using Blazor_Application.Services;
+using Microsoft.AspNetCore.Components.Authorization;
+using Blazor_Application.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,11 +16,14 @@ builder.Services.AddScoped(sp => new HttpClient
 {
     BaseAddress = new Uri(webApiBaseAddress)
 });
-
+builder.Services.AddScoped<IAuthService, JwtAuthService>();
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthProvider>();
 builder.Services.AddScoped<IUserService, HttpUserService>();
 builder.Services.AddScoped<IPostService, HttpPostService>();
 builder.Services.AddScoped<ICommentService, HttpCommentService>();
 builder.Services.AddScoped<ISubForumService, HttpSubForumService>();
+
+AuthorizationPolicies.AddPolicies(builder.Services);
 
 var app = builder.Build();
 
@@ -35,7 +41,9 @@ app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages:
 app.UseAntiforgery();
 
 app.MapStaticAssets();
+
 app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
+    .AddInteractiveServerRenderMode()
+    .AllowAnonymous();
 
 app.Run();

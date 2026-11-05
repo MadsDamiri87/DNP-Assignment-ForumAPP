@@ -24,18 +24,18 @@ public class PostService : IPostService
         this.commentRepository = commentRepository;
     }
 
-    public async Task<PostDto> CreateAsync(CreatePostDto request)
+    public async Task<PostDto> CreateAsync(CreatePostDto request, int userId)
     {
         ValidateFields(request.Title, request.Body);
 
-        User author = await GetExistingUserAsync(request.UserId);
+        User author = await GetExistingUserAsync(userId);
         await EnsureSubForumExistsAsync(request.SubForumId);
 
         Post post = new()
         {
             Title = request.Title.Trim(),
             Body = request.Body.Trim(),
-            UserId = request.UserId,
+            UserId = userId,
             SubForumId = request.SubForumId,
             CreatedAt = DateTime.UtcNow
         };

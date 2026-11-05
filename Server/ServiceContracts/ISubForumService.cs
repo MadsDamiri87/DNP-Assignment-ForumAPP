@@ -2,7 +2,7 @@
 
 namespace ServiceContracts;
 
-public interface ISubForumService : IService<SubForumDto, CreateSubForumDto, UpdateSubForumDto>
+public interface ISubForumService : IAuthoredService<SubForumDto, CreateSubForumDto, UpdateSubForumDto>
 {
     IEnumerable<SubForumDto> GetMany(
         string? nameContains = null, 

@@ -1,0 +1,56 @@
+﻿@page "/login"
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Log in</PageTitle>
+
+<h1>Log in</h1>
+
+<div class="mb-3">
+    <label class="form-label" for="userName">Username</label>
+    <input id="userName" class="form-control" @bind="userName"/>
+</div>
+
+<div class="mb-3">
+    <label class="form-label" for="password">Password</label>
+    <input id="password" class="form-control" type="password" @bind="password"/>
+</div>
+
+<button class="btn btn-primary" @onclick="LoginAsync" disabled="@isLoggingIn">Log in</button>
+
+@if (loginError is not null)
+{
+    <div class="alert alert-danger mt-3">@loginError</div>
+}
+
+@code {
+    private string userName = string.Empty;
+    private string password = string.Empty;
+
+    private string? loginError;
+    private bool isLoggingIn;
+    
+    private async Task LoginAsync()
+    {
+        loginError = null;
+        isLoggingIn = true;
+
+        try
+        {
+            await AuthService.LoginAsync(userName, password);
+            NavigationManager.NavigateTo("");
+        }
+        catch (Exception e)
+        {
+            loginError = e.Message;
+        }
+        finally
+        {
+            isLoggingIn = false;
+        }
+        
+    }
+    
+    
+    
+}

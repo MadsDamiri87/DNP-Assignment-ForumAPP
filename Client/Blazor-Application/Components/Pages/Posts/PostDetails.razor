@@ -1,7 +1,6 @@
 @page "/posts/{Id:int}"
 @inject IPostService PostService
 @inject ICommentService CommentService
-@inject IUserService UserService
 @inject NavigationManager NavigationManager
 
 <PageTitle>@(post?.Title ?? "Post")</PageTitle>
@@ -49,50 +48,43 @@ else
 
     <h3>Add a comment</h3>
 
-    @if (users.Count == 0)
-    {
-        <div class="alert alert-warning">
-            There are no users yet. <a href="users/create">Create a user</a> before commenting.
-        </div>
-    }
-    else
-    {
-        <div class="mb-2">
-            <label class="form-label" for="commentAuthor">Author</label>
-            <select id="commentAuthor" class="form-select" @bind="newCommentUserId">
-                @foreach (UserDto user in users)
-                {
-                    <option value="@user.Id">@user.UserName</option>
-                }
-            </select>
-        </div>
+    <AuthorizeView>
+        <Authorized>
+            <div class="mb-2">
+                <label class="form-label" for="commentBody">Comment</label>
+                <textarea id="commentBody" class="form-control" rows="3" @bind="newCommentBody"></textarea>
+            </div>
 
-        <div class="mb-2">
-            <label class="form-label" for="commentBody">Comment</label>
-            <textarea id="commentBody" class="form-control" rows="3" @bind="newCommentBody"></textarea>
-        </div>
+            <button class="btn btn-primary" @onclick="AddCommentAsync" disabled="@isSaving">Add comment</button>
 
-        <button class="btn btn-primary" @onclick="AddCommentAsync" disabled="@isSaving">Add comment</button>
-
-        @if (commentError is not null)
-        {
-            <div class="alert alert-danger mt-3">@commentError</div>
-        }
-    }
+            @if (commentError is not null)
+            {
+                <div class="alert alert-danger mt-3">@commentError</div>
+            }
+        </Authorized>
+        <NotAuthorized>
+            <div class="alert alert-warning">
+                You must <a href="login">log in</a> to comment.
+            </div>
+        </NotAuthorized>
+    </AuthorizeView>
 
     <hr/>
 
     <a class="btn btn-secondary" href="posts">Back to posts</a>
-    <button class="btn btn-outline-danger" @onclick="DeletePostAsync">Delete post</button>
+
+    <AuthorizeView>
+        <Authorized>
+            <button class="btn btn-outline-danger" @onclick="DeletePostAsync">Delete post</button>
+        </Authorized>
+    </AuthorizeView>
 }
 
 @code {
     private PostDto? post;
     private List<CommentDto> comments = [];
-    private List<UserDto> users = [];
 
     private string newCommentBody = string.Empty;
-    private int newCommentUserId;
 
     private string? loadError;
     private string? commentError;
@@ -110,12 +102,6 @@ else
         {
             post = await PostService.GetSingleAsync(Id);
             comments = await CommentService.GetCommentsAsync(postId: Id);
-            users = await UserService.GetUsersAsync();
-
-            if (newCommentUserId == 0 && users.Count > 0)
-            {
-                newCommentUserId = users[0].Id;
-            }
         }
         catch (Exception e)
         {
@@ -134,8 +120,7 @@ else
             CreateCommentDto request = new()
             {
                 Body = newCommentBody,
-                PostId = Id,
-                UserId = newCommentUserId
+                PostId = Id
             };
 
             comments.Add(await CommentService.AddAsync(request));

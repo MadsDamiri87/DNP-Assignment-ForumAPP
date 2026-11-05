@@ -1,6 +1,8 @@
 ﻿using ApiContracts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ServiceContracts;
+using WebAPI.Auth;
 
 namespace WebAPI.Controllers;
 
@@ -17,12 +19,20 @@ public class PostsController : ControllerBase
         this.commentService = commentService;
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<ActionResult<PostDto>> CreatePost([FromBody] CreatePostDto request)
     {
+        int? userId = User.GetUserId();
+
+        if (userId is null)
+        {
+            return Unauthorized();
+        }
+
         try
         {
-            PostDto created = await postService.CreateAsync(request);
+            PostDto created = await postService.CreateAsync(request, userId.Value);
             return Created($"/posts/{created.Id}", created);
         }
         catch (ArgumentException e)
@@ -69,6 +79,7 @@ public class PostsController : ControllerBase
         }
     }
 
+    [Authorize]
     [HttpPut("{id:int}")]
     public async Task<ActionResult<PostDto>> UpdatePost([FromRoute] int id, [FromBody] UpdatePostDto request)
     {
@@ -87,6 +98,7 @@ public class PostsController : ControllerBase
         }
     }
 
+    [Authorize]
     [HttpDelete("{id:int}")]
     public async Task<ActionResult> DeletePost([FromRoute] int id)
     {

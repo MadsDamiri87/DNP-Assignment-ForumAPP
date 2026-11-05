@@ -145,3 +145,21 @@ DELETE {{WebAPI_HostAddress}}/subforums/1
 ###
 
 DELETE {{WebAPI_HostAddress}}/users/1
+
+
+
+### TEST 1 - uden token. Her skal der komme 401.
+GET {{WebAPI_HostAddress}}/users
+
+### TEST 2 - log ind. Her får du en lang streng.
+POST {{WebAPI_HostAddress}}/auth/login
+Content-Type: application/json
+
+{
+  "userName": "mads",
+  "password": "test1234"
+}
+
+### TEST 3 - med token. Her skal der komme 200.
+GET {{WebAPI_HostAddress}}/users
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJGb3J1bUJsYXpvckNsaWVudCIsImlzcyI6IkZvcnVtQVBJIiwiZXhwIjoxNzkzMzY5MTc1LCJzdWIiOiJtYWRzIiwianRpIjoiMTI5ODJlYzQtOTZhMy00Nzg5LTgwNDgtY2JkY2I3Y2JmYmM3IiwiSWQiOiIxIiwiVXNlcm5hbWUiOiJtYWRzIiwiRW1haWwiOiJtYWRzQHRlc3QubG9jYWwiLCJpYXQiOjE3OTMzNjU1NzUsIm5iZiI6MTc5MzM2NTU3NX0.vgVvoHXs0U5rp4QklbQOXw2nAcqntncBRr7pYZ97qJY

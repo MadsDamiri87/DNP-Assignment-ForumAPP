@@ -2,7 +2,7 @@
 
 namespace ServiceContracts;
 
-public interface IPostService : IService<PostDto, CreatePostDto, UpdatePostDto>
+public interface IPostService : IAuthoredService<PostDto, CreatePostDto, UpdatePostDto>
 {
     IEnumerable<PostDto> GetMany(
         string? titleContains = null,

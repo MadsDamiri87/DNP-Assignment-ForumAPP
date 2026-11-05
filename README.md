@@ -1,9 +1,9 @@
 # DNP Assignment - ForumApp
-2026-09-05 (opdateret 2026-10-18)
+2026-09-05 (opdateret 2026-11-05)
 
 Dette repository indeholder en forum-applikation til kurset **DNP - .NET Programmering**. Projektet tager udgangspunkt i et Reddit-lignende forum, hvor brugere kan oprette posts, skrive kommentarer og organisere posts i subforums.
 
-Applikationen er bygget op over flere assignments: domænemodel og repositories, en Command Line Interface, filbaseret persistence, en Web API og nu en Blazor-frontend, som brugerne kan betjene forummet fra. Der er endnu ikke en database.
+Applikationen er bygget op over flere assignments: domænemodel og repositories, en Command Line Interface, filbaseret persistence, en Web API, en Blazor-frontend, som brugerne kan betjene forummet fra, og login med JWT. Der er endnu ikke en database.
 
 ## Domænemodel
 Domænemodellen viser de centrale entities i systemet og relationerne mellem dem.
@@ -127,6 +127,11 @@ Controllerne indeholder kun HTTP-delen: de tager imod request, kalder en service
 
 Opgaven beskriver forretningslogik i controlleren og et lag mere som en mulighed. Her er det lag med, så controllerne holdes tynde og servicerne kan unit-testes uden HTTP.
 
+### Autentificering
+`POST /auth/login` validerer brugernavn og password og returnerer et JWT, signeret med HMAC-SHA256. Nøgle, issuer og audience står i `appsettings.json` under `Jwt`.
+
+Endpoints markeret med `[Authorize]` kræver headeren `Authorization: Bearer <token>`. Mangler tokenet, eller er det ugyldigt eller udløbet, svarer API'et 401.
+
 ### Passwords
 Passwords gemmes i klartekst i feltet `User.Password`, præcis som de sendes ind. Hashing er ikke implementeret. `UserDto` indeholder ikke password, så det sendes aldrig tilbage til klienterne. Det samme gælder i CLI'en.
 
@@ -146,6 +151,7 @@ Frontenden ligger på `http://localhost:5050`. Adressen på API'et står i `apps
 | Side | Adresse |
 |---|---|
 | Forside med links | `/` |
+| Log ind | `/login` |
 | Opret bruger | `/users/create` |
 | Liste over brugere | `/users` |
 | Opret post | `/posts/create` |
@@ -163,8 +169,12 @@ De fire CRUD-kald er ens for alle entities, så de ligger i den generiske `HttpS
 
 Fejl fra API'et bliver kastet videre som en exception med serverens egen besked, og siderne viser beskeden i en rød boks i stedet for at crashe.
 
-### Bruger
-Der er ingen login endnu. Hvor en post, kommentar eller et subforum skal have en forfatter, vælges brugeren i en dropdown. Når autentificering kommer i assignment 6, erstattes dropdownen af den bruger, der er logget ind.
+### Login
+Brugeren logger ind på `/login`. Klienten kalder `POST /auth/login` og får et JWT tilbage, som gemmes i browseren med `ProtectedLocalStorage`, så det overlever en refresh.
+
+`JwtAuthService` sætter tokenet på den `HttpClient`, alle fire services deler. Derfor sendes det automatisk med på alle kald til API'et. `CustomAuthProvider` oversætter tokenets claims til den `ClaimsPrincipal`, Blazor bruger i `<AuthorizeView>` og `[Authorize]`.
+
+Forfatteren på en post, en kommentar eller et subforum tages fra `Id`-claimet i tokenet. Opret-siderne kræver login, og kommentarfeltet vises kun, når man er logget ind.
 
 ## Tests
 Testprojektet bruger xUnit og Moq. Testene er delt i:
@@ -178,6 +188,7 @@ Testprojektet bruger xUnit og Moq. Testene er delt i:
 - .NET
 - ASP.NET Core Web API med controllere
 - Blazor Web App (interactive server rendering) med `HttpClient`
+- JWT til login (`Microsoft.AspNetCore.Authentication.JwtBearer`)
 - Swagger (Swashbuckle) til dokumentation af API'et
 - Class Library projects
 - Asynkrone repository-metoder med `Task`
@@ -197,6 +208,7 @@ Implementeret:
 - Web API med controllere, service-lag og DTO'er
 - Filtrering på liste-endpoints og nested routes for kommentarer og posts
 - Blazor frontend med sider til brugere, posts, kommentarer og subforums
+- Login med JWT i både Web API og Blazor-frontend
 - Unit tests og integration tests
 
 Ikke implementeret endnu:
@@ -204,4 +216,5 @@ Ikke implementeret endnu:
 - Entity Framework Core
 - SQLite database
 - Hashing af passwords
-- Autentificering og autorisation (login)
+- Serverside-kontrol af forfatter: API'et bruger stadig `UserId` fra request-body'en i stedet for `Id`-claimet i tokenet
+- Ejerskab: enhver indlogget bruger kan slette andres posts

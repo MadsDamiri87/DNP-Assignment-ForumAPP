@@ -21,18 +21,18 @@ public class CommentService : ICommentService
         this.userRepository = userRepository;
     }
 
-    public async Task<CommentDto> CreateAsync(CreateCommentDto request)
+    public async Task<CommentDto> CreateAsync(CreateCommentDto request, int userId)
     {
         ValidateBody(request.Body);
 
         await EnsurePostExistsAsync(request.PostId);
-        User author = await GetExistingUserAsync(request.UserId);
+        User author = await GetExistingUserAsync(userId);
 
         Comment comment = new()
         {
             Body = request.Body.Trim(),
             PostId = request.PostId,
-            UserId = request.UserId,
+            UserId = userId,
             CreatedAt = DateTime.UtcNow
         };
 

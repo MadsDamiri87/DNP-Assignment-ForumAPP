@@ -2,7 +2,7 @@
 
 namespace ServiceContracts;
 
-public interface IUserService : IService<UserDto, CreateUserDto, UpdateUserDto>
+public interface IUserService : ICreatableService<UserDto, CreateUserDto, UpdateUserDto>
 {
     IEnumerable<UserDto> GetMany(
         string? userNameContains = null);

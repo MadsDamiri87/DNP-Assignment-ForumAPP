@@ -113,5 +113,5 @@ public class UserService : IUserService
     }
 
     private static UserDto ToDto(User user) =>
-        new(user.Id, user.UserName, user.Email, user.CreatedAt);
+        new(user.Id, user.UserName, user.Email, user.Role, user.CreatedAt);
 }

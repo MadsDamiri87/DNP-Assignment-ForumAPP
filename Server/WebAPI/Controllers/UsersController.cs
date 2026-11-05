@@ -1,6 +1,8 @@
 ﻿using ApiContracts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ServiceContracts;
+using WebAPI.Auth;
 
 namespace WebAPI.Controllers;
 
@@ -29,6 +31,7 @@ public class UsersController : ControllerBase
         }
     }
 
+    [Authorize]
     [HttpGet("{id:int}")]
     public async Task<ActionResult<UserDto>> GetSingleUser([FromRoute] int id)
     {
@@ -42,13 +45,14 @@ public class UsersController : ControllerBase
             return NotFound(e.Message);
         }
     }
-
+    [Authorize]
     [HttpGet]
     public ActionResult<IEnumerable<UserDto>> GetUsers([FromQuery] string? userNameContains)
     {
         return Ok(userService.GetMany(userNameContains));
     }
 
+    [Authorize]
     [HttpPut("{id:int}")]
     public async Task<ActionResult<UserDto>> UpdateUser([FromRoute] int id, [FromBody] UpdateUserDto request)
     {
@@ -66,7 +70,7 @@ public class UsersController : ControllerBase
             return NotFound(e.Message);
         }
     }
-
+    [Authorize]
     [HttpDelete("{id:int}")]
     public async Task<ActionResult> DeleteUser([FromRoute] int id)
     {

@@ -1,6 +1,6 @@
 @page "/posts/create"
+@attribute [Authorize]
 @inject IPostService PostService
-@inject IUserService UserService
 @inject ISubForumService SubForumService
 @inject NavigationManager NavigationManager
 
@@ -12,12 +12,6 @@
 {
     <div class="alert alert-danger">@loadError</div>
 }
-else if (users.Count == 0)
-{
-    <div class="alert alert-warning">
-        There are no users yet. <a href="users/create">Create a user</a> before writing a post.
-    </div>
-}
 else
 {
     <div class="mb-3">
@@ -28,16 +22,6 @@ else
     <div class="mb-3">
         <label class="form-label" for="body">Body</label>
         <textarea id="body" class="form-control" rows="6" @bind="body"></textarea>
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label" for="author">Author</label>
-        <select id="author" class="form-select" @bind="userId">
-            @foreach (UserDto user in users)
-            {
-                <option value="@user.Id">@user.UserName</option>
-            }
-        </select>
     </div>
 
     <div class="mb-3">
@@ -61,12 +45,10 @@ else
 }
 
 @code {
-    private List<UserDto> users = [];
     private List<SubForumDto> subForums = [];
 
     private string title = string.Empty;
     private string body = string.Empty;
-    private int userId;
     private int subForumId;
 
     private string? loadError;
@@ -77,13 +59,7 @@ else
     {
         try
         {
-            users = await UserService.GetUsersAsync();
             subForums = await SubForumService.GetSubForumsAsync();
-
-            if (users.Count > 0)
-            {
-                userId = users[0].Id;
-            }
         }
         catch (Exception e)
         {
@@ -102,7 +78,6 @@ else
             {
                 Title = title,
                 Body = body,
-                UserId = userId,
                 SubForumId = subForumId == 0 ? null : subForumId
             };
 

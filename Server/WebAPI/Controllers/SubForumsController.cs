@@ -1,6 +1,8 @@
 ﻿using ApiContracts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ServiceContracts;
+using WebAPI.Auth;
 
 namespace WebAPI.Controllers;
 
@@ -17,12 +19,20 @@ public class SubForumsController : ControllerBase
         this.postService = postService;
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<ActionResult<SubForumDto>> CreateSubForum([FromBody] CreateSubForumDto request)
     {
+        int? userId = User.GetUserId();
+
+        if (userId is null)
+        {
+            return Unauthorized();
+        }
+
         try
         {
-            SubForumDto created = await subForumService.CreateAsync(request);
+            SubForumDto created = await subForumService.CreateAsync(request, userId.Value);
             return Created($"/subforums/{created.Id}", created);
         }
         catch (ArgumentException e)
@@ -64,7 +74,7 @@ public class SubForumsController : ControllerBase
             return NotFound(e.Message);
         }
     }
-
+    [Authorize]
     [HttpPut("{id:int}")]
     public async Task<ActionResult<SubForumDto>> UpdateSubForum([FromRoute] int id, [FromBody] UpdateSubForumDto request)
     {
@@ -82,7 +92,7 @@ public class SubForumsController : ControllerBase
             return NotFound(e.Message);
         }
     }
-
+    [Authorize]
     [HttpDelete("{id:int}")]
     public async Task<ActionResult> DeleteSubForum([FromRoute] int id)
     {
