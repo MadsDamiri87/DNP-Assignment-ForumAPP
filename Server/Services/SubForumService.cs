@@ -40,12 +40,12 @@ public class SubForumService : ISubForumService
         return ToDto(created, creator.UserName);
     }
 
-    public async Task<SubForumDto> UpdateAsync(int id, UpdateSubForumDto request)
+    public async Task<SubForumDto> UpdateAsync(int id, UpdateSubForumDto request, Caller caller)
     {
         ValidateFields(request.Name, request.Description);
 
         SubForum existing = await subForumRepository.GetSingleAsync(id);
-        EnsureNameIsAvailable(request.Name, id);
+        Ownership.Ensure(existing.CreatorUserId, caller, "sub-forum");
 
         SubForum updated = new()
         {
@@ -60,8 +60,11 @@ public class SubForumService : ISubForumService
         return ToDto(updated, FindUserName(updated.CreatorUserId));
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, Caller caller)
     {
+        SubForum existing = await subForumRepository.GetSingleAsync(id);
+        Ownership.Ensure(existing.CreatorUserId, caller, "sub-forum");
+        
         List<Post> postsInSubForum = postRepository.GetMany()
             .Where(post => post.SubForumId == id)
             .ToList();

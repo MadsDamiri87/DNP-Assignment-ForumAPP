@@ -32,12 +32,13 @@ public class UserService : IUserService
         return ToDto(created);
     }
 
-    public async Task<UserDto> UpdateAsync(int id, UpdateUserDto request)
+    public async Task<UserDto> UpdateAsync(int id, UpdateUserDto request, Caller caller)
     {
         ValidateFields(request.UserName, request.Password, request.Email);
 
         User existing = await userRepository.GetSingleAsync(id);
-
+        Ownership.Ensure(existing.Id, caller, "account");
+        
         EnsureUserNameIsAvailable(request.UserName, id);
         EnsureEmailIsAvailable(request.Email, id);
 
@@ -54,9 +55,12 @@ public class UserService : IUserService
         return ToDto(updated);
     }
 
-    public Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, Caller caller)
     {
-        return userRepository.DeleteAsync(id);
+        User existing = await userRepository.GetSingleAsync(id);
+        Ownership.Ensure(existing.Id, caller, "account");
+        
+        await userRepository.DeleteAsync(id);
     }
 
     public async Task<UserDto> GetSingleAsync(int id)

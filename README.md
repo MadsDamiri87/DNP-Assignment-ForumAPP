@@ -132,6 +132,13 @@ Opgaven beskriver forretningslogik i controlleren og et lag mere som en mulighed
 
 Endpoints markeret med `[Authorize]` kræver headeren `Authorization: Bearer <token>`. Mangler tokenet, eller er det ugyldigt eller udløbet, svarer API'et 401.
 
+### Ejerskab
+En bruger må kun ændre og slette sit eget indhold. Tjekket ligger i service-laget: entiteten hentes, og dens forfatter sammenlignes med `Id`-claimet fra tokenet. Passer de ikke, svarer API'et 403.
+
+Brugere har et `Role`-felt, som sendes med som claim. En bruger med rollen `Admin` slipper forbi ejerskabstjekket og kan ændre alt. Nye brugere får rollen `User`, og rollen kan ikke sættes af klienten.
+
+`[Authorize]` svarer på *hvem du er*; ejerskabstjekket svarer på *om indholdet er dit*. Policyen `MustBeAdmin` i `ApiContracts/Auth/AuthorizationPolicies.cs` deles mellem Web API'en og Blazor-frontenden.
+
 ### Passwords
 Passwords gemmes i klartekst i feltet `User.Password`, præcis som de sendes ind. Hashing er ikke implementeret. `UserDto` indeholder ikke password, så det sendes aldrig tilbage til klienterne. Det samme gælder i CLI'en.
 
@@ -165,7 +172,7 @@ Listerne kan filtreres, og `/posts` kan desuden begrænses til ét subforum elle
 ### Services
 Mappen `Services` indeholder et interface og en `Http...`-implementation pr. entity, som registreres med dependency injection i `Program.cs`. Siderne kender kun interfacet.
 
-De fire CRUD-kald er ens for alle entities, så de ligger i den generiske `HttpServiceBase<TDto, TCreate, TUpdate>`, der kender sin egen ressource-sti (`users`, `posts`, ...). Det er samme opbygning som `IService<TDto, TCreate, TUpdate>` på serveren og `IRepository<T>` i repository-laget. Hver konkret service er derfor kun en konstruktør plus sin egen filtrerings-metode.
+De fire CRUD-kald er ens for alle entities, så de ligger i den generiske `HttpServiceBase<TDto, TCreate, TUpdate>`, der kender sin egen ressource-sti (`users`, `posts`, ...). Det er samme opbygning som service-kontrakterne på serveren og `IRepository<T>` i repository-laget. Hver konkret service er derfor kun en konstruktør plus sin egen filtrerings-metode.
 
 Fejl fra API'et bliver kastet videre som en exception med serverens egen besked, og siderne viser beskeden i en rød boks i stedet for at crashe.
 
@@ -209,6 +216,7 @@ Implementeret:
 - Filtrering på liste-endpoints og nested routes for kommentarer og posts
 - Blazor frontend med sider til brugere, posts, kommentarer og subforums
 - Login med JWT i både Web API og Blazor-frontend
+- Ejerskab: kun forfatteren eller en admin kan ændre og slette
 - Unit tests og integration tests
 
 Ikke implementeret endnu:
@@ -216,5 +224,3 @@ Ikke implementeret endnu:
 - Entity Framework Core
 - SQLite database
 - Hashing af passwords
-- Serverside-kontrol af forfatter: API'et bruger stadig `UserId` fra request-body'en i stedet for `Id`-claimet i tokenet
-- Ejerskab: enhver indlogget bruger kan slette andres posts

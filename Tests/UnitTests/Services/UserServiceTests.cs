@@ -1,5 +1,6 @@
 using ApiContracts;
 using Entities;
+using ServiceContracts;
 using Services;
 using Tests.UnitTests.Fakes;
 using Xunit;
@@ -29,6 +30,9 @@ public class UserServiceTests
 
     private readonly FakeUserRepository users = new();
     private readonly UserService service;
+
+    // For en bruger er ejeren id'et selv, så denne kalder ejer den seedede bruger (Id = 1).
+    private static readonly Caller Owner = new(1, false);
 
     // Kører før hver test (xUnits svar på JUnits @BeforeEach).
     public UserServiceTests()
@@ -215,7 +219,7 @@ public class UserServiceTests
         UpdateUserDto request = new() { UserName = "nytnavn", Password = "nytpass", Email = "nyt@x.dk" };
 
         // Act
-        UserDto updated = await service.UpdateAsync(1, request);
+        UserDto updated = await service.UpdateAsync(1, request, Owner);
 
         // Assert
         Assert.Equal(expected, updated.CreatedAt);
@@ -228,7 +232,7 @@ public class UserServiceTests
         UpdateUserDto request = new() { UserName = TakenUserName, Password = "nytpass", Email = TakenEmail };
 
         // Act
-        UserDto updated = await service.UpdateAsync(1, request);
+        UserDto updated = await service.UpdateAsync(1, request, Owner);
 
         // Assert
         Assert.Equal(TakenUserName, updated.UserName);
@@ -242,7 +246,7 @@ public class UserServiceTests
         UpdateUserDto request = new() { UserName = TakenUserName, Password = ValidPassword, Email = ValidEmail };
 
         // Act + Assert
-        await Assert.ThrowsAsync<ArgumentException>(() => service.UpdateAsync(2, request));
+        await Assert.ThrowsAsync<ArgumentException>(() => service.UpdateAsync(2, request, new Caller(2, false)));
     }
 
     [Theory]
@@ -271,7 +275,7 @@ public class UserServiceTests
     public async Task ShouldDeleteTheUser_WhenUserExists()
     {
         // Act
-        await service.DeleteAsync(1);
+        await service.DeleteAsync(1, Owner);
 
         // Assert
         Assert.Empty(users.Items);
@@ -281,6 +285,7 @@ public class UserServiceTests
     public async Task ShouldThrow_WhenUserToDeleteDoesNotExist()
     {
         // Act + Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() => service.DeleteAsync(99));
+        // Kalderen "ejer" id 99, så ejerskabstjekket slipper igennem og testen rammer not-found.
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.DeleteAsync(99, new Caller(99, false)));
     }
 }

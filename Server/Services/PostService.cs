@@ -44,12 +44,12 @@ public class PostService : IPostService
         return ToDto(created, author.UserName);
     }
 
-    public async Task<PostDto> UpdateAsync(int id, UpdatePostDto request)
+    public async Task<PostDto> UpdateAsync(int id, UpdatePostDto request, Caller caller)
     {
         ValidateFields(request.Title, request.Body);
 
         Post existing = await postRepository.GetSingleAsync(id);
-        await EnsureSubForumExistsAsync(request.SubForumId);
+        Ownership.Ensure(existing.UserId, caller, "post");
 
         Post updated = new()
         {
@@ -64,10 +64,12 @@ public class PostService : IPostService
         await postRepository.UpdateAsync(updated);
         return ToDto(updated, FindUserName(updated.UserId));
     }
-
-    public async Task DeleteAsync(int id)
+    
+    public async Task DeleteAsync(int id, Caller caller)
     {
-
+        Post existing = await postRepository.GetSingleAsync(id);
+        Ownership.Ensure(existing.UserId, caller, "post");
+        
         List<int> commentIds = commentRepository.GetMany()
             .Where(comment => comment.PostId == id)
             .Select(comment => comment.Id)

@@ -45,6 +45,7 @@ public class UsersController : ControllerBase
             return NotFound(e.Message);
         }
     }
+
     [Authorize]
     [HttpGet]
     public ActionResult<IEnumerable<UserDto>> GetUsers([FromQuery] string? userNameContains)
@@ -54,30 +55,54 @@ public class UsersController : ControllerBase
 
     [Authorize]
     [HttpPut("{id:int}")]
-    public async Task<ActionResult<UserDto>> UpdateUser([FromRoute] int id, [FromBody] UpdateUserDto request)
+    public async Task<ActionResult<UserDto>> UpdateUser([FromRoute] int id,
+        [FromBody] UpdateUserDto request)
     {
+        Caller? caller = User.GetCaller();
+
+        if (caller == null)
+        {
+            return Unauthorized();
+        }
+
         try
         {
-            UserDto updated = await userService.UpdateAsync(id, request);
+            UserDto updated = await userService.UpdateAsync(id, request, caller);
             return updated;
         }
         catch (ArgumentException e)
         {
             return BadRequest(e.Message);
         }
+        catch (UnauthorizedAccessException e)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, e.Message);
+        }
         catch (InvalidOperationException e)
         {
             return NotFound(e.Message);
         }
     }
+
     [Authorize]
     [HttpDelete("{id:int}")]
     public async Task<ActionResult> DeleteUser([FromRoute] int id)
     {
+        Caller? caller = User.GetCaller();
+
+        if (caller == null)
+        {
+            return Unauthorized();
+        }
+
         try
         {
-            await userService.DeleteAsync(id);
+            await userService.DeleteAsync(id, caller);
             return NoContent();
+        }
+        catch (UnauthorizedAccessException e)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, e.Message);
         }
         catch (InvalidOperationException e)
         {

@@ -40,12 +40,13 @@ public class CommentService : ICommentService
         return ToDto(created, author.UserName);
     }
 
-    public async Task<CommentDto> UpdateAsync(int id, UpdateCommentDto request)
+    public async Task<CommentDto> UpdateAsync(int id, UpdateCommentDto request, Caller caller)
     {
         ValidateBody(request.Body);
 
         Comment existing = await commentRepository.GetSingleAsync(id);
-
+        Ownership.Ensure(existing.UserId, caller, "comment");
+        
         Comment updated = new()
         {
             Id = existing.Id,
@@ -59,9 +60,12 @@ public class CommentService : ICommentService
         return ToDto(updated, FindUserName(updated.UserId));
     }
 
-    public Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, Caller caller)
     {
-        return commentRepository.DeleteAsync(id);
+        Comment existing = await commentRepository.GetSingleAsync(id);
+        Ownership.Ensure(existing.UserId, caller, "comment");
+        
+        await commentRepository.DeleteAsync(id);
     }
 
     public async Task<CommentDto> GetSingleAsync(int id)

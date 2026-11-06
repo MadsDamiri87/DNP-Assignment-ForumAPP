@@ -43,7 +43,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
             ClockSkew = TimeSpan.Zero,
-            NameClaimType = "Username"
+            NameClaimType = "Username",
+            RoleClaimType = "Role"
         };
     });
 builder.Services.AddAuthorization();

@@ -78,14 +78,25 @@ public class SubForumsController : ControllerBase
     [HttpPut("{id:int}")]
     public async Task<ActionResult<SubForumDto>> UpdateSubForum([FromRoute] int id, [FromBody] UpdateSubForumDto request)
     {
+        Caller? caller = User.GetCaller();
+
+        if (caller is null)
+        {
+            return Unauthorized();
+        }
+
         try
         {
-            SubForumDto updated = await subForumService.UpdateAsync(id, request);
+            SubForumDto updated = await subForumService.UpdateAsync(id, request, caller);
             return updated;
         }
         catch (ArgumentException e)
         {
             return BadRequest(e.Message);
+        }
+        catch (UnauthorizedAccessException e)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, e.Message);
         }
         catch (InvalidOperationException e)
         {
@@ -96,10 +107,21 @@ public class SubForumsController : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<ActionResult> DeleteSubForum([FromRoute] int id)
     {
+        Caller? caller = User.GetCaller();
+
+        if (caller is null)
+        {
+            return Unauthorized();
+        }
+
         try
         {
-            await subForumService.DeleteAsync(id);
+            await subForumService.DeleteAsync(id, caller);
             return NoContent();
+        }
+        catch (UnauthorizedAccessException e)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, e.Message);
         }
         catch (InvalidOperationException e)
         {

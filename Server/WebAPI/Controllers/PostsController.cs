@@ -83,14 +83,25 @@ public class PostsController : ControllerBase
     [HttpPut("{id:int}")]
     public async Task<ActionResult<PostDto>> UpdatePost([FromRoute] int id, [FromBody] UpdatePostDto request)
     {
+        Caller? caller = User.GetCaller();
+
+        if (caller is null)
+        {
+            return Unauthorized();
+        }
+
         try
         {
-            PostDto updated = await postService.UpdateAsync(id, request);
+            PostDto updated = await postService.UpdateAsync(id, request, caller);
             return updated;
         }
         catch (ArgumentException e)
         {
             return BadRequest(e.Message);
+        }
+        catch (UnauthorizedAccessException e)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, e.Message);
         }
         catch (InvalidOperationException e)
         {
@@ -102,10 +113,21 @@ public class PostsController : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<ActionResult> DeletePost([FromRoute] int id)
     {
+        Caller? caller = User.GetCaller();
+
+        if (caller is null)
+        {
+            return Unauthorized();
+        }
+
         try
         {
-            await postService.DeleteAsync(id);
+            await postService.DeleteAsync(id, caller);
             return NoContent();
+        }
+        catch (UnauthorizedAccessException e)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, e.Message);
         }
         catch (InvalidOperationException e)
         {

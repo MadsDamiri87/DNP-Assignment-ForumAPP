@@ -66,14 +66,25 @@ public class CommentsController : ControllerBase
     [HttpPut("{id:int}")]
     public async Task<ActionResult<CommentDto>> UpdateComment([FromRoute] int id, [FromBody] UpdateCommentDto request)
     {
+        Caller? caller = User.GetCaller();
+
+        if (caller is null)
+        {
+            return Unauthorized();
+        }
+
         try
         {
-            CommentDto updated = await commentService.UpdateAsync(id, request);
+            CommentDto updated = await commentService.UpdateAsync(id, request, caller);
             return updated;
         }
         catch (ArgumentException e)
         {
             return BadRequest(e.Message);
+        }
+        catch (UnauthorizedAccessException e)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, e.Message);
         }
         catch (InvalidOperationException e)
         {
@@ -84,10 +95,21 @@ public class CommentsController : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<ActionResult> DeleteComment([FromRoute] int id)
     {
+        Caller? caller = User.GetCaller();
+
+        if (caller is null)
+        {
+            return Unauthorized();
+        }
+
         try
         {
-            await commentService.DeleteAsync(id);
+            await commentService.DeleteAsync(id, caller);
             return NoContent();
+        }
+        catch (UnauthorizedAccessException e)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, e.Message);
         }
         catch (InvalidOperationException e)
         {

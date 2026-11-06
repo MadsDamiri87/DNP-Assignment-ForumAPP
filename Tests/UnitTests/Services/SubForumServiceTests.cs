@@ -1,5 +1,6 @@
 using ApiContracts;
 using Entities;
+using ServiceContracts;
 using Services;
 using Tests.UnitTests.Fakes;
 using Xunit;
@@ -15,6 +16,9 @@ public class SubForumServiceTests
     private readonly FakeUserRepository users = new();
     private readonly SubForumService service;
 
+    // De seedede subforums har CreatorUserId = 1, så denne kalder er ejeren og ikke admin.
+    private static readonly Caller Owner = new(1, false);
+
     // Kører før hver test (xUnits svar på JUnits @BeforeEach).
     public SubForumServiceTests()
     {
@@ -23,8 +27,8 @@ public class SubForumServiceTests
         service = new SubForumService(subForums, users, posts);
     }
 
-    private static SubForum NewSubForum(int id) =>
-        new() { Id = id, Name = $"Subforum {id}", Description = "Description", CreatorUserId = 1 };
+    private static SubForum NewSubForum(int id, int creatorUserId = 1) =>
+        new() { Id = id, Name = $"Subforum {id}", Description = "Description", CreatorUserId = creatorUserId };
 
     private static Post NewPost(int id, int? subForumId) => new()
     {
@@ -36,7 +40,7 @@ public class SubForumServiceTests
     public async Task ShouldDeleteTheSubForum_WhenSubForumIsDeleted()
     {
         // Act
-        await service.DeleteAsync(1);
+        await service.DeleteAsync(1, Owner);
 
         // Assert
         Assert.DoesNotContain(subForums.Items, subForum => subForum.Id == 1);
@@ -47,7 +51,7 @@ public class SubForumServiceTests
     public async Task ShouldKeepThePostsButRemoveTheirSubForum_WhenSubForumIsDeleted()
     {
         // Act
-        await service.DeleteAsync(1);
+        await service.DeleteAsync(1, Owner);
 
         // Assert
         Post post = posts.Items.Single(p => p.Id == 1);
@@ -58,7 +62,7 @@ public class SubForumServiceTests
     public async Task ShouldNotTouchPostsInOtherSubForums_WhenSubForumIsDeleted()
     {
         // Act
-        await service.DeleteAsync(1);
+        await service.DeleteAsync(1, Owner);
 
         // Assert
         Assert.Equal(2, posts.Items.Single(p => p.Id == 2).SubForumId);
@@ -68,7 +72,7 @@ public class SubForumServiceTests
     public async Task ShouldThrow_WhenSubForumDoesNotExist()
     {
         // Act + Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() => service.DeleteAsync(99));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.DeleteAsync(99, Owner));
     }
 
     [Fact]
@@ -95,5 +99,47 @@ public class SubForumServiceTests
 
         // Assert
         Assert.Equal("mads", subForum.CreatorUserName);
+    }
+
+    // Ejerskab. Subforum 5 er oprettet af bruger 7, så id og opretter er forskellige.
+    // Det afslører et tjek, der ved en fejl bruger subforummets eget id som ejer.
+    [Fact]
+    public async Task ShouldDeleteTheSubForum_WhenTheCreatorDeletesIt()
+    {
+        // Arrange
+        subForums.Seed(NewSubForum(5, creatorUserId: 7));
+
+        // Act
+        await service.DeleteAsync(5, new Caller(7, false));
+
+        // Assert
+        Assert.DoesNotContain(subForums.Items, subForum => subForum.Id == 5);
+    }
+
+    [Fact]
+    public async Task ShouldThrowUnauthorized_WhenAnotherUserDeletesTheSubForum()
+    {
+        // Arrange
+        subForums.Seed(NewSubForum(5, creatorUserId: 7));
+
+        // Act
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(
+            () => service.DeleteAsync(5, new Caller(3, false)));
+
+        // Assert
+        Assert.Contains(subForums.Items, subForum => subForum.Id == 5);
+    }
+
+    [Fact]
+    public async Task ShouldDeleteTheSubForum_WhenAnAdminDeletesIt()
+    {
+        // Arrange
+        subForums.Seed(NewSubForum(5, creatorUserId: 7));
+
+        // Act
+        await service.DeleteAsync(5, new Caller(3, true));
+
+        // Assert
+        Assert.DoesNotContain(subForums.Items, subForum => subForum.Id == 5);
     }
 }
