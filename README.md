@@ -1,21 +1,71 @@
 # DNP Assignment - ForumApp
-2026-09-05 (opdateret 2026-11-05)
+2026-09-05 (opdateret 2026-11-08)
 
 Dette repository indeholder en forum-applikation til kurset **DNP - .NET Programmering**. Projektet tager udgangspunkt i et Reddit-lignende forum, hvor brugere kan oprette posts, skrive kommentarer og organisere posts i subforums.
 
-Applikationen er bygget op over flere assignments: domænemodel og repositories, en Command Line Interface, filbaseret persistence, en Web API, en Blazor-frontend, som brugerne kan betjene forummet fra, og login med JWT. Der er endnu ikke en database.
+Applikationen er bygget op over flere assignments: domænemodel og repositories, en Command Line Interface, filbaseret persistence, en Web API, en Blazor-frontend, som brugerne kan betjene forummet fra, og login med JWT. Entity Framework Core er påbegyndt, men der er endnu ikke en database.
 
-## Domænemodel
-Domænemodellen viser de centrale entities i systemet og relationerne mellem dem.
+<a href="docs/screenshots/landing-page.png" target="_blank" rel="noopener">
+  <img src="docs/screenshots/landing-page.png" alt="Forsiden i Blazor-frontenden" width="800">
+</a>
 
-![DNP-ForumAPP-DomainModel V1.svg](docs/diagrams/DNP-ForumAPP-DomainModel%20V1.svg)
+Åbn de afsnit, du vil arbejde med. Al dokumentation er samlet her.
 
-## Projektets formål
+<details>
+<summary><strong>Kom i gang</strong></summary>
+
+Kræver .NET 10 SDK. Web API'en skal køre først, derefter Blazor-appen:
+
+```
+dotnet run --project Server/WebAPI --launch-profile http
+dotnet run --project Client/Blazor-Application --launch-profile http
+```
+
+| | Adresse |
+|---|---|
+| Web API | `http://localhost:5028` |
+| Swagger UI (Development) | `http://localhost:5028/swagger` |
+| Blazor-frontend | `http://localhost:5050` |
+
+API'et kan også startes med play-knappen i `WebAPI: http`. Filen `Server/WebAPI/WebAPI.http` indeholder eksempler på kald til alle endpoints, som kan køres direkte fra Rider eller VS Code. API'et starter uden data.
+
+Adressen på API'et står i Blazor-appens `appsettings.json` under `WebApiBaseAddress`, så den kan ændres uden at kodes om.
+
+</details>
+
+<details>
+<summary><strong>Projektets formål</strong></summary>
+
 Formålet med denne assignment er at give den studerende (mig) et modulært .NET-projekt, samt får en forståelse af C# og forskellighederne mellem dét og Java. Derudover er hensigten også at vi får erfaringer med andre sprog og måder hvorpå de kan interagere med hinanden.
 
 Strukturen gør det muligt at udskifte persistence-laget (in-memory, filer, senere Entity Framework Core med SQLite) uden at resten af applikationen behøver kende detaljerne. Det samme gælder mellem lagene i Web API'en: controllere kender kun service-interfaces, og services kender kun repository-interfaces. Dette støtter op om sidste semesters læring omkring dele af SOLID principperne.
 
-## Løsningsstruktur
+</details>
+
+<details>
+<summary><strong>Domænemodel og relationer</strong></summary>
+
+Domænemodellen viser de centrale entities i systemet og relationerne mellem dem.
+
+![DNP-ForumAPP-DomainModel V1.svg](docs/diagrams/DNP-ForumAPP-DomainModel%20V1.svg)
+
+Alle entities implementerer `IEntity`, som sikrer at de har et `Id` af typen `int`.
+
+Projektet modellerer relationer med foreign keys i stedet for direkte associationer som `List<Comment>` eller `User Author`:
+
+- En `Post` har en `UserId`, som peger på den bruger, der har skrevet opslaget.
+- En `Post` har en `SubForumId`, som peger på det subforum, opslaget hører til. Feltet er valgfrit (`int?`), så en post kan eksistere uden subforum.
+- En `Comment` har en `PostId`, som peger på det post, kommentaren hører til.
+- En `Comment` har en `UserId`, som peger på den bruger, der har skrevet kommentaren.
+- En `SubForum` har en `CreatorUserId`, som peger på brugeren, der oprettede subforummet.
+
+Denne tilgang matcher den måde relationer senere kan gemmes i en relationel database.
+
+</details>
+
+<details>
+<summary><strong>Løsningsstruktur</strong></summary>
+
 ```
 DNP-Assignment-ForumAPP/
 ├── DNP-Assignment-ForumAPP.sln
@@ -29,6 +79,7 @@ DNP-Assignment-ForumAPP/
 │   ├── RepositoryContracts/     Interfaces for data-adgang
 │   ├── InMemoryRepositories/    Repositories baseret på lister + DataSeeder
 │   ├── FileRepository/          Repositories der gemmer data som JSON-filer
+│   ├── EfcRepositories/         Entity Framework Core og AppContext (under opbygning)
 │   ├── ServiceContracts/        Interfaces for services
 │   ├── Services/                Forretningslogik, validering og mapping til DTO'er
 │   ├── CLI/                     Command Line Interface (Assignment 2)
@@ -38,23 +89,11 @@ DNP-Assignment-ForumAPP/
 └── Tests/                       Unit tests og integration tests (xUnit + Moq)
 ```
 
-## Entities
-Alle entities implementerer `IEntity`, som sikrer at de har et `Id` af typen `int`.
+</details>
 
-## Relationer
-Projektet modellerer relationer med foreign keys i stedet for direkte associationer som `List<Comment>` eller `User Author`.
+<details>
+<summary><strong>Repository-lag</strong></summary>
 
-Det betyder blandt andet:
-
-- En `Post` har en `UserId`, som peger på den bruger, der har skrevet opslaget.
-- En `Post` har en `SubForumId`, som peger på det subforum, opslaget hører til. Feltet er valgfrit (`int?`), så en post kan eksistere uden subforum.
-- En `Comment` har en `PostId`, som peger på det post, kommentaren hører til.
-- En `Comment` har en `UserId`, som peger på den bruger, der har skrevet kommentaren.
-- En `SubForum` har en `CreatorUserId`, som peger på brugeren, der oprettede subforummet.
-
-Denne tilgang matcher den måde relationer senere kan gemmes i en relationel database.
-
-## Repository-lag
 Repository-laget abstraherer data-adgang for hver entity. Hvert repository-interface definerer de samme grundlæggende CRUD-operationer:
 
 - `AddAsync`
@@ -63,12 +102,7 @@ Repository-laget abstraherer data-adgang for hver entity. Hvert repository-inter
 - `GetSingleAsync`
 - `GetMany`
 
-Der findes et repository-interface for hver entity:
-
-- `IUserRepository`
-- `ISubForumRepository`
-- `IPostRepository`
-- `ICommentRepository`
+Der findes et repository-interface for hver entity: `IUserRepository`, `ISubForumRepository`, `IPostRepository` og `ICommentRepository`.
 
 Et id bliver aldrig genbrugt, heller ikke selv om den nyeste entity er slettet. Det er vigtigt for en Web API, fordi id'er er en del af adresserne, klienter gemmer.
 
@@ -82,15 +116,12 @@ Projektet `FileRepository` gemmer hver entity-type i sin egen JSON-fil i en `Dat
 
 Ved siden af hver datafil ligger en lille `.nextid`-fil, som husker det næste ledige id. `Data`-mappen oprettes i den mappe, programmet startes fra, og den ligger i `.gitignore`, fordi den indeholder brugerdata.
 
-## Web API
+</details>
+
+<details>
+<summary><strong>Web API</strong></summary>
+
 Web API'en giver adgang til de samme funktioner som CLI'en, men over HTTP. Den følger REST-principperne: hver entity er en ressource med en adresse, og HTTP-verberne bestemmer handlingen.
-
-### Kør den enten med play i WebAPI: http - Eller i med dette i konsollen:
-```
-dotnet run --project Server/WebAPI --launch-profile http
-```
-
-API'et lytter på `http://localhost:5028`. I Development-miljøet findes Swagger UI på `http://localhost:5028/swagger`. Filen `Server/WebAPI/WebAPI.http` indeholder eksempler på kald til alle endpoints, som kan køres direkte fra Rider eller VS Code. API'et starter uden data.
 
 ### Statuskoder
 | Kode | Bruges når |
@@ -127,7 +158,11 @@ Controllerne indeholder kun HTTP-delen: de tager imod request, kalder en service
 
 Opgaven beskriver forretningslogik i controlleren og et lag mere som en mulighed. Her er det lag med, så controllerne holdes tynde og servicerne kan unit-testes uden HTTP.
 
-### Autentificering
+</details>
+
+<details>
+<summary><strong>Autentificering og ejerskab</strong></summary>
+
 `POST /auth/login` validerer brugernavn og password og returnerer et JWT, signeret med HMAC-SHA256. Nøgle, issuer og audience står i `appsettings.json` under `Jwt`.
 
 Endpoints markeret med `[Authorize]` kræver headeren `Authorization: Bearer <token>`. Mangler tokenet, eller er det ugyldigt eller udløbet, svarer API'et 401.
@@ -142,35 +177,33 @@ Brugere har et `Role`-felt, som sendes med som claim. En bruger med rollen `Admi
 ### Passwords
 Passwords gemmes i klartekst i feltet `User.Password`, præcis som de sendes ind. Hashing er ikke implementeret. `UserDto` indeholder ikke password, så det sendes aldrig tilbage til klienterne. Det samme gælder i CLI'en.
 
-## Blazor frontend
+</details>
+
+<details>
+<summary><strong>Blazor frontend</strong></summary>
+
 Frontenden er en **Blazor Web App** med interactive server rendering. Den har ingen adgang til repositories eller entities — al data hentes over HTTP fra Web API'en, og de DTO'er, der sendes frem og tilbage, er de samme fra `ApiContracts`.
-
-### Kør den
-Web API'en skal køre først, derefter Blazor-appen:
-```
-dotnet run --project Server/WebAPI --launch-profile http
-dotnet run --project Client/Blazor-Application --launch-profile http
-```
-
-Frontenden ligger på `http://localhost:5050`. Adressen på API'et står i `appsettings.json` under `WebApiBaseAddress`, så den kan ændres uden at kodes om.
 
 ### Sider
 | Side | Adresse |
 |---|---|
-| Forside med links | `/` |
+| Forside med fremhævet post og underfora | `/` |
+| Søgning i posts eller brugere | `/search` |
 | Log ind | `/login` |
 | Opret bruger | `/users/create` |
 | Liste over brugere | `/users` |
 | Opret post | `/posts/create` |
-| Liste over posts (titel og forfatter) | `/posts` |
+| Liste over posts som kort med uddrag og kommentartæller | `/posts` |
 | En post med body, forfatter og kommentarer, samt felt til ny kommentar | `/posts/{id}` |
 | Opret subforum | `/subforums/create` |
 | Liste over subforums | `/subforums` |
 
-Listerne kan filtreres, og `/posts` kan desuden begrænses til ét subforum eller én forfatter via query-parametre.
+Listerne kan filtreres, og `/posts` kan desuden begrænses til ét subforum eller én forfatter via query-parametre. Søgesiden holder sin søgning i adressen: `/search?q=...&in=posts|users`. Underfora kaldes "Interests" i brugerfladen; i koden hedder de stadig subforum.
 
 ### Services
 Mappen `Services` indeholder et interface og en `Http...`-implementation pr. entity, som registreres med dependency injection i `Program.cs`. Siderne kender kun interfacet.
+
+Interfacene hedder `IPostApiService`, `ISubForumApiService`, `IUserApiService`, `ICommentApiService` og `IAuthApiService`. Endelsen `Api` adskiller dem fra serverens kontrakter i `ServiceContracts`, som før hed det samme.
 
 De fire CRUD-kald er ens for alle entities, så de ligger i den generiske `HttpServiceBase<TDto, TCreate, TUpdate>`, der kender sin egen ressource-sti (`users`, `posts`, ...). Det er samme opbygning som service-kontrakterne på serveren og `IRepository<T>` i repository-laget. Hver konkret service er derfor kun en konstruktør plus sin egen filtrerings-metode.
 
@@ -179,17 +212,28 @@ Fejl fra API'et bliver kastet videre som en exception med serverens egen besked,
 ### Login
 Brugeren logger ind på `/login`. Klienten kalder `POST /auth/login` og får et JWT tilbage, som gemmes i browseren med `ProtectedLocalStorage`, så det overlever en refresh.
 
-`JwtAuthService` sætter tokenet på den `HttpClient`, alle fire services deler. Derfor sendes det automatisk med på alle kald til API'et. `CustomAuthProvider` oversætter tokenets claims til den `ClaimsPrincipal`, Blazor bruger i `<AuthorizeView>` og `[Authorize]`.
+`JwtAuthApiService` sætter tokenet på den `HttpClient`, alle fire services deler. Derfor sendes det automatisk med på alle kald til API'et. `CustomAuthProvider` oversætter tokenets claims til den `ClaimsPrincipal`, Blazor bruger i `<AuthorizeView>` og `[Authorize]`.
 
 Forfatteren på en post, en kommentar eller et subforum tages fra `Id`-claimet i tokenet. Opret-siderne kræver login, og kommentarfeltet vises kun, når man er logget ind.
 
-## Tests
+</details>
+
+<details>
+<summary><strong>Test</strong></summary>
+
 Testprojektet bruger xUnit og Moq. Testene er delt i:
 
 - **Unit tests** af repositories, services, DTO'er, DataSeeder og CLI-views (med fake repositories eller Moq).
 - **Integration tests** af file repositories, DataSeeder og hele CLI'en (menuer, views og repositories sammen).
 
-## Teknologier
+```
+dotnet test Tests/Tests.csproj
+```
+
+</details>
+
+<details>
+<summary><strong>Teknologier</strong></summary>
 
 - C#
 - .NET
@@ -205,7 +249,11 @@ Testprojektet bruger xUnit og Moq. Testene er delt i:
 
 Projektfilerne bruger `net10.0` som target framework.
 
-## Status
+</details>
+
+<details>
+<summary><strong>Status</strong></summary>
+
 Implementeret:
 
 - Domæneklasser for `User`, `SubForum`, `Post` og `Comment`
@@ -215,12 +263,17 @@ Implementeret:
 - Web API med controllere, service-lag og DTO'er
 - Filtrering på liste-endpoints og nested routes for kommentarer og posts
 - Blazor frontend med sider til brugere, posts, kommentarer og subforums
+- Forside med fremhævet post, og søgeside på `/search`
 - Login med JWT i både Web API og Blazor-frontend
 - Ejerskab: kun forfatteren eller en admin kan ændre og slette
 - Unit tests og integration tests
+- `EfcRepositories` med NuGet-pakker og en `AppContext`
 
 Ikke implementeret endnu:
 
-- Entity Framework Core
-- SQLite database
+- Navigation properties på entities — de bruger stadig kun fremmednøgler
+- Migration og `app.db`
+- De fire EFC-repositories, og at skifte `Program.cs` over til dem
 - Hashing af passwords
+
+</details>
