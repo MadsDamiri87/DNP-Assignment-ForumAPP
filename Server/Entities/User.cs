@@ -9,4 +9,9 @@ public class User : IEntity
     public string Role { get; set; } = "User";
     public DateTime CreatedAt {get; set;}
     
+    public bool IsDeleted {get; set;}
+    
+    public ICollection<Post> CreatedPosts {get; set;} = new List<Post>();
+    public ICollection<SubForum> CreatedSubForums {get; set;} = new List<SubForum>();
+    public ICollection<Comment> CreatedComments {get; set;} = new List<Comment>();
 }

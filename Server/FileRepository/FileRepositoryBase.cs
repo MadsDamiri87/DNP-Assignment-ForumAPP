@@ -1,11 +1,17 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 using Entities;
 using RepositoryContracts;
 
 namespace FileRepository;
+
 public abstract class FileRepositoryBase<T> : IRepository<T> where T : IEntity
 {
-    private static readonly JsonSerializerOptions SerializerOptions = new() { WriteIndented = true };
+    private static readonly JsonSerializerOptions
+        SerializerOptions = new()
+        {
+            WriteIndented = true,
+        };
 
     private readonly string filePath;
     private readonly string nextIdFilePath;
@@ -72,7 +78,7 @@ public abstract class FileRepositoryBase<T> : IRepository<T> where T : IEntity
         return entities.SingleOrDefault(e => e.Id == id)
                ?? throw new InvalidOperationException(NotFoundMessage(id));
     }
-    
+
     public IQueryable<T> GetMany()
     {
         return Deserialize(File.ReadAllText(filePath)).AsQueryable();
@@ -109,5 +115,6 @@ public abstract class FileRepositoryBase<T> : IRepository<T> where T : IEntity
         await File.WriteAllTextAsync(filePath, entitiesAsJson);
     }
 
-    private static string NotFoundMessage(int id) => $"The {typeof(T).Name} with id: {id} was not found.";
+    private static string NotFoundMessage(int id) =>
+        $"The {typeof(T).Name} with id: {id} was not found.";
 }
