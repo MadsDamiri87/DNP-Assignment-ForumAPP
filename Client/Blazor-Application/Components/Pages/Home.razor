@@ -1,6 +1,6 @@
 ﻿@page "/"
-@inject IPostService PostService
-@inject ISubForumService SubForumService
+@inject IPostApiService PostApiService
+@inject ISubForumApiService SubForumApiService
 
 <PageTitle>Forum</PageTitle>
 
@@ -159,8 +159,8 @@ else
     {
         try
         {
-            posts = await PostService.GetPostsAsync();
-            subForums = await SubForumService.GetSubForumsAsync();
+            posts = await PostApiService.GetPostsAsync();
+            subForums = await SubForumApiService.GetSubForumsAsync();
         }
         catch (Exception e)
         {

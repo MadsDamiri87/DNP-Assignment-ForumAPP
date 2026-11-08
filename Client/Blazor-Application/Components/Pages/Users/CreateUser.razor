@@ -1,5 +1,5 @@
 @page "/users/create"
-@inject IUserService UserService
+@inject IUserApiService UserApiService
 @inject NavigationManager NavigationManager
 
 <PageTitle>New user</PageTitle>
@@ -51,7 +51,7 @@
                 Email = email
             };
 
-            await UserService.AddAsync(request);
+            await UserApiService.AddAsync(request);
             NavigationManager.NavigateTo("users");
         }
         catch (Exception e)

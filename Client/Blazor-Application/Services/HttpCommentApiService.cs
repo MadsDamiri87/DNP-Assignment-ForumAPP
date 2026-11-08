@@ -2,9 +2,9 @@ using ApiContracts;
 
 namespace Blazor_Application.Services;
 
-public class HttpCommentService : HttpServiceBase<CommentDto, CreateCommentDto, UpdateCommentDto>, ICommentService
+public class HttpCommentApiService : HttpServiceBase<CommentDto, CreateCommentDto, UpdateCommentDto>, ICommentApiService
 {
-    public HttpCommentService(HttpClient client) : base(client, "comments")
+    public HttpCommentApiService(HttpClient client) : base(client, "comments")
     {
     }
 

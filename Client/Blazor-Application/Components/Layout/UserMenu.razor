@@ -1,6 +1,6 @@
 @using System.Security.Claims
 @implements IDisposable
-@inject IAuthService AuthService
+@inject IAuthApiService AuthApiService
 @inject NavigationManager NavigationManager
 
 <AuthorizeView>
@@ -82,7 +82,7 @@
     private async Task LogoutAsync()
     {
         isOpen = false;
-        await AuthService.LogoutAsync();
+        await AuthApiService.LogoutAsync();
         NavigationManager.NavigateTo("");
     }
 

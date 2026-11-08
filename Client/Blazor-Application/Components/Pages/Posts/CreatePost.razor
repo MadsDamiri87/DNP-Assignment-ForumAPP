@@ -1,7 +1,7 @@
 @page "/posts/create"
 @attribute [Authorize]
-@inject IPostService PostService
-@inject ISubForumService SubForumService
+@inject IPostApiService PostApiService
+@inject ISubForumApiService SubForumApiService
 @inject NavigationManager NavigationManager
 
 <PageTitle>New post</PageTitle>
@@ -59,7 +59,7 @@ else
     {
         try
         {
-            subForums = await SubForumService.GetSubForumsAsync();
+            subForums = await SubForumApiService.GetSubForumsAsync();
         }
         catch (Exception e)
         {
@@ -81,7 +81,7 @@ else
                 SubForumId = subForumId == 0 ? null : subForumId
             };
 
-            PostDto created = await PostService.AddAsync(request);
+            PostDto created = await PostApiService.AddAsync(request);
             NavigationManager.NavigateTo($"posts/{created.Id}");
         }
         catch (Exception e)

@@ -1,6 +1,6 @@
 @page "/subforums/create"
 @attribute [Authorize]
-@inject ISubForumService SubForumService
+@inject ISubForumApiService SubForumApiService
 @inject NavigationManager NavigationManager
 
 <PageTitle>New sub-forum</PageTitle>
@@ -45,7 +45,7 @@
                 Description = description
             };
 
-            await SubForumService.AddAsync(request);
+            await SubForumApiService.AddAsync(request);
             NavigationManager.NavigateTo("subforums");
         }
         catch (Exception e)

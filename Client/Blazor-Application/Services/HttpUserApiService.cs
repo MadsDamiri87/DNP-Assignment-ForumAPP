@@ -2,9 +2,9 @@ using ApiContracts;
 
 namespace Blazor_Application.Services;
 
-public class HttpUserService : HttpServiceBase<UserDto, CreateUserDto, UpdateUserDto>, IUserService
+public class HttpUserApiService : HttpServiceBase<UserDto, CreateUserDto, UpdateUserDto>, IUserApiService
 {
-    public HttpUserService(HttpClient client) : base(client, "users")
+    public HttpUserApiService(HttpClient client) : base(client, "users")
     {
     }
 

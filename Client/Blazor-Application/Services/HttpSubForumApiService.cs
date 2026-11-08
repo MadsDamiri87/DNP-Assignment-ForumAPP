@@ -2,9 +2,9 @@ using ApiContracts;
 
 namespace Blazor_Application.Services;
 
-public class HttpSubForumService : HttpServiceBase<SubForumDto, CreateSubForumDto, UpdateSubForumDto>, ISubForumService
+public class HttpSubForumApiService : HttpServiceBase<SubForumDto, CreateSubForumDto, UpdateSubForumDto>, ISubForumApiService
 {
-    public HttpSubForumService(HttpClient client) : base(client, "subforums")
+    public HttpSubForumApiService(HttpClient client) : base(client, "subforums")
     {
     }
 

@@ -1,5 +1,5 @@
 @page "/subforums"
-@inject ISubForumService SubForumService
+@inject ISubForumApiService SubForumApiService
 
 <PageTitle>Sub-forums</PageTitle>
 
@@ -65,7 +65,7 @@ else
 
         try
         {
-            subForums = await SubForumService.GetSubForumsAsync(nameFilter);
+            subForums = await SubForumApiService.GetSubForumsAsync(nameFilter);
         }
         catch (Exception e)
         {

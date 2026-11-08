@@ -2,9 +2,9 @@ using ApiContracts;
 
 namespace Blazor_Application.Services;
 
-public class HttpPostService : HttpServiceBase<PostDto, CreatePostDto, UpdatePostDto>, IPostService
+public class HttpPostApiService : HttpServiceBase<PostDto, CreatePostDto, UpdatePostDto>, IPostApiService
 {
-    public HttpPostService(HttpClient client) : base(client, "posts")
+    public HttpPostApiService(HttpClient client) : base(client, "posts")
     {
     }
 

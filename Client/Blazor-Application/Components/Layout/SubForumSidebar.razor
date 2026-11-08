@@ -1,5 +1,5 @@
 @implements IDisposable
-@inject ISubForumService SubForumService
+@inject ISubForumApiService SubForumApiService
 @inject NavigationManager NavigationManager
 
 @if (!isHome)
@@ -45,7 +45,7 @@
 
         try
         {
-            subForums = await SubForumService.GetSubForumsAsync();
+            subForums = await SubForumApiService.GetSubForumsAsync();
         }
         catch (Exception)
         {

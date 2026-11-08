@@ -1,6 +1,6 @@
 @page "/posts/{Id:int}"
-@inject IPostService PostService
-@inject ICommentService CommentService
+@inject IPostApiService PostApiService
+@inject ICommentApiService CommentApiService
 @inject NavigationManager NavigationManager
 
 <PageTitle>@(post?.Title ?? "Post")</PageTitle>
@@ -100,8 +100,8 @@ else
 
         try
         {
-            post = await PostService.GetSingleAsync(Id);
-            comments = await CommentService.GetCommentsAsync(postId: Id);
+            post = await PostApiService.GetSingleAsync(Id);
+            comments = await CommentApiService.GetCommentsAsync(postId: Id);
         }
         catch (Exception e)
         {
@@ -123,7 +123,7 @@ else
                 PostId = Id
             };
 
-            comments.Add(await CommentService.AddAsync(request));
+            comments.Add(await CommentApiService.AddAsync(request));
             newCommentBody = string.Empty;
         }
         catch (Exception e)
@@ -140,7 +140,7 @@ else
     {
         try
         {
-            await PostService.DeleteAsync(Id);
+            await PostApiService.DeleteAsync(Id);
             NavigationManager.NavigateTo("posts");
         }
         catch (Exception e)

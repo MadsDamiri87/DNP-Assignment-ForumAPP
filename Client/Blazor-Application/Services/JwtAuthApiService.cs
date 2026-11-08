@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
 namespace Blazor_Application.Services;
 
-public class JwtAuthService(HttpClient httpClient, ProtectedLocalStorage storage) : IAuthService
+public class JwtAuthApiService(HttpClient httpClient, ProtectedLocalStorage storage) : IAuthApiService
 {
     private const string StorageKey = "jwt";
     public string? Jwt { get; private set; }

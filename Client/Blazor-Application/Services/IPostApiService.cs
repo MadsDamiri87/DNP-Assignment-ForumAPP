@@ -2,7 +2,7 @@ using ApiContracts;
 
 namespace Blazor_Application.Services;
 
-public interface IPostService : IHttpService<PostDto, CreatePostDto, UpdatePostDto>
+public interface IPostApiService : IHttpService<PostDto, CreatePostDto, UpdatePostDto>
 {
     Task<List<PostDto>> GetPostsAsync(
         string? titleContains = null,

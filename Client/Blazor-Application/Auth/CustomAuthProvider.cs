@@ -6,18 +6,18 @@ namespace Blazor_Application.Auth;
 
 public class CustomAuthProvider : AuthenticationStateProvider
 {
-    private readonly IAuthService authService;
+    private readonly IAuthApiService _authApiService;
 
-    public CustomAuthProvider(IAuthService authService)
+    public CustomAuthProvider(IAuthApiService authApiService)
     {
-        this.authService = authService;
-        authService.OnAuthStateChanged += AuthStateChanged;
+        this._authApiService = authApiService;
+        authApiService.OnAuthStateChanged += AuthStateChanged;
     }
 
 
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
-        ClaimsPrincipal principal = await authService.GetAuthAsync();
+        ClaimsPrincipal principal = await _authApiService.GetAuthAsync();
         return new AuthenticationState(principal);
     }
 

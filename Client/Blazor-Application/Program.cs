@@ -16,12 +16,12 @@ builder.Services.AddScoped(sp => new HttpClient
 {
     BaseAddress = new Uri(webApiBaseAddress)
 });
-builder.Services.AddScoped<IAuthService, JwtAuthService>();
+builder.Services.AddScoped<IAuthApiService, JwtAuthApiService>();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthProvider>();
-builder.Services.AddScoped<IUserService, HttpUserService>();
-builder.Services.AddScoped<IPostService, HttpPostService>();
-builder.Services.AddScoped<ICommentService, HttpCommentService>();
-builder.Services.AddScoped<ISubForumService, HttpSubForumService>();
+builder.Services.AddScoped<IUserApiService, HttpUserApiService>();
+builder.Services.AddScoped<IPostApiService, HttpPostApiService>();
+builder.Services.AddScoped<ICommentApiService, HttpCommentApiService>();
+builder.Services.AddScoped<ISubForumApiService, HttpSubForumApiService>();
 
 AuthorizationPolicies.AddPolicies(builder.Services);
 

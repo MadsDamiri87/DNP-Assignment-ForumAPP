@@ -1,5 +1,5 @@
 ﻿@page "/login"
-@inject IAuthService AuthService
+@inject IAuthApiService AuthApiService
 @inject NavigationManager NavigationManager
 
 <PageTitle>Log in</PageTitle>
@@ -37,7 +37,7 @@
 
         try
         {
-            await AuthService.LoginAsync(userName, password);
+            await AuthApiService.LoginAsync(userName, password);
             NavigationManager.NavigateTo("");
         }
         catch (Exception e)

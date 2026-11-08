@@ -1,7 +1,7 @@
 @page "/posts"
-@inject IPostService PostService
-@inject ISubForumService SubForumService
-@inject IUserService UserService
+@inject IPostApiService PostApiService
+@inject ISubForumApiService SubForumApiService
+@inject IUserApiService UserApiService
 
 <PageTitle>Posts</PageTitle>
 
@@ -101,12 +101,12 @@ else
 
         try
         {
-            posts = await PostService.GetPostsAsync(
+            posts = await PostApiService.GetPostsAsync(
                 titleContains: titleFilter,
                 userId: UserId,
                 subForumId: SubForumId);
 
-            subForumNames = (await SubForumService.GetSubForumsAsync())
+            subForumNames = (await SubForumApiService.GetSubForumsAsync())
                 .ToDictionary(subForum => subForum.Id, subForum => subForum.Name);
 
             heading = await BuildHeadingAsync();
@@ -122,13 +122,13 @@ else
     {
         if (SubForumId.HasValue)
         {
-            SubForumDto subForum = await SubForumService.GetSingleAsync(SubForumId.Value);
+            SubForumDto subForum = await SubForumApiService.GetSingleAsync(SubForumId.Value);
             return $"Posts in {subForum.Name}";
         }
 
         if (UserId.HasValue)
         {
-            UserDto user = await UserService.GetSingleAsync(UserId.Value);
+            UserDto user = await UserApiService.GetSingleAsync(UserId.Value);
             return $"Posts by {user.UserName}";
         }
 

@@ -1,5 +1,5 @@
 @page "/users"
-@inject IUserService UserService
+@inject IUserApiService UserApiService
 
 <PageTitle>Users</PageTitle>
 
@@ -67,7 +67,7 @@ else
 
         try
         {
-            users = await UserService.GetUsersAsync(userNameFilter);
+            users = await UserApiService.GetUsersAsync(userNameFilter);
         }
         catch (Exception e)
         {

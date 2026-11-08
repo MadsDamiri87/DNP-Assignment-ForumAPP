@@ -2,7 +2,7 @@ using ApiContracts;
 
 namespace Blazor_Application.Services;
 
-public interface ICommentService : IHttpService<CommentDto, CreateCommentDto, UpdateCommentDto>
+public interface ICommentApiService : IHttpService<CommentDto, CreateCommentDto, UpdateCommentDto>
 {
     Task<List<CommentDto>> GetCommentsAsync(
         int? postId = null,

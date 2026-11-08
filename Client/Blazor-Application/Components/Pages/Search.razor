@@ -1,7 +1,7 @@
 @page "/search"
-@inject IPostService PostService
-@inject IUserService UserService
-@inject ISubForumService SubForumService
+@inject IPostApiService PostApiService
+@inject IUserApiService UserApiService
+@inject ISubForumApiService SubForumApiService
 @inject NavigationManager NavigationManager
 
 <PageTitle>Search</PageTitle>
@@ -146,12 +146,12 @@ else
 
         try
         {
-            interests = await SubForumService.GetSubForumsAsync();
+            interests = await SubForumApiService.GetSubForumsAsync();
             interestNames = interests.ToDictionary(interest => interest.Id, interest => interest.Name);
 
             if (!hasQuery)
             {
-                startPosts = (await PostService.GetPostsAsync())
+                startPosts = (await PostApiService.GetPostsAsync())
                     .OrderByDescending(post => post.CreatedAt)
                     .Take(5)
                     .ToList();
@@ -165,13 +165,13 @@ else
 
                 if (!needsLogin)
                 {
-                    users = await UserService.GetUsersAsync(userNameContains: query);
+                    users = await UserApiService.GetUsersAsync(userNameContains: query);
                 }
 
                 return;
             }
 
-            posts = (await PostService.GetPostsAsync(titleContains: query))
+            posts = (await PostApiService.GetPostsAsync(titleContains: query))
                 .OrderByDescending(post => post.CreatedAt)
                 .ToList();
         }

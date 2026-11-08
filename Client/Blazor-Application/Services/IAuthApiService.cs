@@ -2,7 +2,7 @@
 
 namespace Blazor_Application.Services;
 
-public interface IAuthService
+public interface IAuthApiService
 {
     Task LoginAsync(string userName, string password);
     Task LogoutAsync();
