@@ -1,0 +1,32 @@
+.sidebar {
+    flex: 1 1 260px;
+    min-width: 0;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-link {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line-soft);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--ink);
+    text-decoration: none;
+}
+
+.sidebar-link:last-child {
+    border-bottom: 0;
+}
+
+.sidebar-link:hover {
+    color: var(--accent-strong);
+}
+
+.sidebar-note {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--ink-muted);
+}

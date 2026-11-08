@@ -14,6 +14,7 @@ public class PostServiceTests
     private readonly FakePostRepository posts = new();
     private readonly FakeCommentRepository comments = new();
     private readonly FakeUserRepository users = new();
+    private readonly FakeSubForumRepository subForums = new();
     private readonly PostService service;
 
     // De seedede posts har UserId = 1, så denne kalder er ejeren og ikke admin.
@@ -24,7 +25,7 @@ public class PostServiceTests
     {
         posts.Seed(NewPost(1), NewPost(2));
         comments.Seed(NewComment(1, postId: 1), NewComment(2, postId: 1), NewComment(3, postId: 2));
-        service = new PostService(posts, users, new FakeSubForumRepository(), comments);
+        service = new PostService(posts, users, subForums, comments);
     }
 
     private static Post NewPost(int id, int userId = 1) =>
@@ -165,5 +166,84 @@ public class PostServiceTests
         // Act + Assert
         await Assert.ThrowsAsync<UnauthorizedAccessException>(
             () => service.UpdateAsync(5, request, new Caller(3, false)));
+    }
+
+    // Kommentartælleren i feedet. Post 1 har to kommentarer, post 2 har én,
+    // så en tæller, der ved en fejl tæller alle kommentarer, bliver afsløret.
+    [Fact]
+    public async Task ShouldCountOnlyItsOwnComments_WhenASinglePostIsFetched()
+    {
+        // Act
+        PostDto post = await service.GetSingleAsync(1);
+
+        // Assert
+        Assert.Equal(2, post.CommentCount);
+    }
+
+    [Fact]
+    public void ShouldCountCommentsPerPost_WhenManyPostsAreFetched()
+    {
+        // Act
+        List<PostDto> found = service.GetMany().ToList();
+
+        // Assert
+        Assert.Equal(2, found.Single(post => post.Id == 1).CommentCount);
+        Assert.Equal(1, found.Single(post => post.Id == 2).CommentCount);
+    }
+
+    [Fact]
+    public async Task ShouldReportNoComments_WhenThePostIsBrandNew()
+    {
+        // Arrange
+        SeedAuthorAndSubForum();
+        CreatePostDto request = new() { Title = "Title", Body = "Body", SubForumId = 1 };
+
+        // Act
+        PostDto created = await service.CreateAsync(request, userId: 1);
+
+        // Assert
+        Assert.Equal(0, created.CommentCount);
+    }
+
+    // Et subforum er valgfrit: en post må gerne stå frit for sig selv.
+    [Fact]
+    public async Task ShouldCreateThePost_WhenNoSubForumIsGiven()
+    {
+        // Arrange
+        SeedAuthorAndSubForum();
+        CreatePostDto request = new() { Title = "Title", Body = "Body", SubForumId = null };
+
+        // Act
+        PostDto created = await service.CreateAsync(request, userId: 1);
+
+        // Assert
+        Assert.Null(created.SubForumId);
+    }
+
+    // Men angiver man ét, skal det findes. Forfatteren seedes med,
+    // så testen ikke fejler på en manglende bruger i stedet.
+    [Fact]
+    public async Task ShouldThrow_WhenTheSubForumDoesNotExist()
+    {
+        // Arrange
+        SeedAuthorAndSubForum();
+        CreatePostDto request = new() { Title = "Title", Body = "Body", SubForumId = 99 };
+
+        // Act + Assert
+        await Assert.ThrowsAsync<ArgumentException>(() => service.CreateAsync(request, userId: 1));
+    }
+
+    private void SeedAuthorAndSubForum()
+    {
+        users.Seed(new User
+        {
+            Id = 1, UserName = "mads", Password = "hash", Email = "mads@x.dk", CreatedAt = new DateTime(2026, 1, 1)
+        });
+
+        subForums.Seed(new SubForum
+        {
+            Id = 1, Name = "DNP", Description = "Description", CreatorUserId = 1,
+            CreatedAt = new DateTime(2026, 1, 1)
+        });
     }
 }

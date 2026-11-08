@@ -5,25 +5,29 @@
 
 <PageTitle>Posts</PageTitle>
 
-<h1>@heading</h1>
+<div class="page-head">
+    <div>
+        <h1 class="page-title">@heading</h1>
+        <p class="page-sub">@Summary()</p>
+    </div>
 
-<div class="row g-2 align-items-center mb-3">
-    <div class="col-auto">
-        <input class="form-control" placeholder="Search in title" @bind="titleFilter" @bind:event="oninput"/>
+    <div class="segmented">
+        <button type="button" class="@SortClass(true)" @onclick="() => SetNewestFirst(true)">Newest</button>
+        <button type="button" class="@SortClass(false)" @onclick="() => SetNewestFirst(false)">Oldest</button>
     </div>
-    <div class="col-auto">
-        <button class="btn btn-outline-secondary" @onclick="LoadPostsAsync">Search</button>
-    </div>
-    <div class="col-auto">
-        <a class="btn btn-primary" href="posts/create">New post</a>
-    </div>
+</div>
+
+<form class="filter-row" @onsubmit="LoadPostsAsync" @onsubmit:preventDefault>
+    <label class="visually-hidden" for="titleFilter">Search in title</label>
+    <input id="titleFilter" class="field" type="search" placeholder="Search in title"
+           @bind="titleFilter" @bind:event="oninput"/>
+    <button class="pill-btn pill-btn-ghost" type="submit">Search</button>
+
     @if (SubForumId.HasValue || UserId.HasValue)
     {
-        <div class="col-auto">
-            <a class="btn btn-link" href="posts">Show all posts</a>
-        </div>
+        <a class="filter-clear" href="posts">Show all posts</a>
     }
-</div>
+</form>
 
 @if (errorMessage is not null)
 {
@@ -31,40 +35,60 @@
 }
 else if (posts is null)
 {
-    <p><em>Loading...</em></p>
+    <p class="feed-empty">Loading...</p>
 }
 else if (posts.Count == 0)
 {
-    <p>No posts found.</p>
+    <p class="feed-empty">No posts found.</p>
 }
 else
 {
-    <table class="table table-hover">
-        <thead>
-        <tr>
-            <th>Title</th>
-            <th>Author</th>
-            <th>Created</th>
-        </tr>
-        </thead>
-        <tbody>
-        @foreach (PostDto post in posts)
+    <div class="feed">
+        @foreach (PostDto post in Ordered(posts))
         {
-            <tr>
-                <td><a href="posts/@post.Id">@post.Title</a></td>
-                <td>@post.AuthorUserName</td>
-                <td>@post.CreatedAt.ToLocalTime().ToString("g")</td>
-            </tr>
+            <article class="post-card">
+                <div class="post-rail">
+                    <span class="avatar" aria-hidden="true">@Initial(post.AuthorUserName)</span>
+                    <span class="post-age">@Age(post.CreatedAt)</span>
+                </div>
+
+                <div class="post-body">
+                    <div class="post-meta">
+                        @if (SubForumNameOf(post) is string subForumName)
+                        {
+                            <a class="chip chip-accent"
+                               href="@($"posts?subForumId={post.SubForumId}")">@subForumName</a>
+                        }
+
+                        <span class="post-author">
+                            posted by <a href="@($"posts?userId={post.UserId}")">@post.AuthorUserName</a>
+                        </span>
+                    </div>
+
+                    <a class="post-title" href="@($"posts/{post.Id}")">@post.Title</a>
+                    <p class="post-excerpt">@Excerpt(post.Body)</p>
+
+                    <a class="post-comments" href="@($"posts/{post.Id}")">
+                        <svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16" fill="none"
+                             stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                             stroke-linejoin="round">
+                            <path d="M14 9.5a2 2 0 0 1-2 2H5.5L2 14V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        @CommentLabel(post.CommentCount)
+                    </a>
+                </div>
+            </article>
         }
-        </tbody>
-    </table>
+    </div>
 }
 
 @code {
     private List<PostDto>? posts;
+    private Dictionary<int, string> subForumNames = [];
     private string titleFilter = string.Empty;
     private string heading = "Posts";
     private string? errorMessage;
+    private bool newestFirst = true;
 
     [SupplyParameterFromQuery] public int? SubForumId { get; set; }
     [SupplyParameterFromQuery] public int? UserId { get; set; }
@@ -81,6 +105,9 @@ else
                 titleContains: titleFilter,
                 userId: UserId,
                 subForumId: SubForumId);
+
+            subForumNames = (await SubForumService.GetSubForumsAsync())
+                .ToDictionary(subForum => subForum.Id, subForum => subForum.Name);
 
             heading = await BuildHeadingAsync();
         }
@@ -106,5 +133,91 @@ else
         }
 
         return "Posts";
+    }
+
+    private void SetNewestFirst(bool value) => newestFirst = value;
+
+    private string SortClass(bool value) =>
+        newestFirst == value ? "is-active" : string.Empty;
+
+    private IEnumerable<PostDto> Ordered(List<PostDto> source) =>
+        newestFirst
+            ? source.OrderByDescending(post => post.CreatedAt)
+            : source.OrderBy(post => post.CreatedAt);
+
+    private string? SubForumNameOf(PostDto post) =>
+        post.SubForumId.HasValue && subForumNames.TryGetValue(post.SubForumId.Value, out string? name)
+            ? name
+            : null;
+
+    private string Summary()
+    {
+        if (posts is null)
+        {
+            return string.Empty;
+        }
+
+        string postWord = posts.Count == 1 ? "post" : "posts";
+
+        int subForumCount = posts
+            .Where(post => post.SubForumId.HasValue)
+            .Select(post => post.SubForumId!.Value)
+            .Distinct()
+            .Count();
+
+        if (subForumCount == 0)
+        {
+            return $"{posts.Count} {postWord}";
+        }
+
+        string subForumWord = subForumCount == 1 ? "sub-forum" : "sub-forums";
+        return $"{posts.Count} {postWord} across {subForumCount} {subForumWord}";
+    }
+
+    private static string CommentLabel(int count) => count switch
+    {
+        0 => "No comments",
+        1 => "1 comment",
+        _ => $"{count} comments"
+    };
+
+    private static string Initial(string userName) =>
+        string.IsNullOrWhiteSpace(userName) ? "?" : userName[..1].ToUpperInvariant();
+
+    private static string Age(DateTime createdAt)
+    {
+        TimeSpan age = DateTime.UtcNow - createdAt;
+
+        if (age.TotalHours < 1)
+        {
+            return $"{Math.Max(1, (int)age.TotalMinutes)}m";
+        }
+
+        if (age.TotalDays < 1)
+        {
+            return $"{(int)age.TotalHours}h";
+        }
+
+        if (age.TotalDays < 7)
+        {
+            return $"{(int)age.TotalDays}d";
+        }
+
+        return createdAt.ToLocalTime().ToString("d MMM");
+    }
+
+    private static string Excerpt(string body)
+    {
+        string single = body.Replace('\r', ' ').Replace('\n', ' ').Trim();
+
+        if (single.Length <= 180)
+        {
+            return single;
+        }
+
+        string cut = single[..180];
+        int lastSpace = cut.LastIndexOf(' ');
+
+        return (lastSpace > 120 ? cut[..lastSpace] : cut).TrimEnd() + "…";
     }
 }

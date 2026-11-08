@@ -41,7 +41,7 @@ public class PostService : IPostService
         };
 
         Post created = await postRepository.AddAsync(post);
-        return ToDto(created, author.UserName);
+        return ToDto(created, author.UserName, 0);
     }
 
     public async Task<PostDto> UpdateAsync(int id, UpdatePostDto request, Caller caller)
@@ -62,7 +62,7 @@ public class PostService : IPostService
         };
 
         await postRepository.UpdateAsync(updated);
-        return ToDto(updated, FindUserName(updated.UserId));
+        return ToDto(updated, FindUserName(updated.UserId), CountCommentsFor(updated.Id));
     }
     
     public async Task DeleteAsync(int id, Caller caller)
@@ -85,7 +85,7 @@ public class PostService : IPostService
     public async Task<PostDto> GetSingleAsync(int id)
     {
         Post post = await postRepository.GetSingleAsync(id);
-        return ToDto(post, FindUserName(post.UserId));
+        return ToDto(post, FindUserName(post.UserId), CountCommentsFor(post.Id));
     }
 
     public IEnumerable<PostDto> GetMany(
@@ -126,8 +126,15 @@ public class PostService : IPostService
         Dictionary<int, string> userNames = userRepository.GetMany()
             .ToDictionary(user => user.Id, user => user.UserName);
 
+        Dictionary<int, int> commentCounts = commentRepository.GetMany()
+            .GroupBy(comment => comment.PostId)
+            .ToDictionary(group => group.Key, group => group.Count());
+
         return posts
-            .Select(post => ToDto(post, userNames.GetValueOrDefault(post.UserId, DeletedUser.UserName)))
+            .Select(post => ToDto(
+                post,
+                userNames.GetValueOrDefault(post.UserId, DeletedUser.UserName),
+                commentCounts.GetValueOrDefault(post.Id)))
             .ToList();
     }
 
@@ -174,6 +181,10 @@ public class PostService : IPostService
         return user?.UserName ?? DeletedUser.UserName;
     }
 
-    private static PostDto ToDto(Post post, string authorUserName) =>
-        new(post.Id, post.Title, post.Body, post.UserId, authorUserName, post.SubForumId, post.CreatedAt);
+    private int CountCommentsFor(int postId) =>
+        commentRepository.GetMany().Count(comment => comment.PostId == postId);
+
+    private static PostDto ToDto(Post post, string authorUserName, int commentCount) =>
+        new(post.Id, post.Title, post.Body, post.UserId, authorUserName, post.SubForumId,
+            post.CreatedAt, commentCount);
 }

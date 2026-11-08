@@ -1,0 +1,135 @@
+.user-menu {
+    position: relative;
+}
+
+.user-menu-trigger {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: var(--tap);
+    padding: 3px 12px 3px 3px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-pill);
+    background: transparent;
+    font: inherit;
+    color: var(--ink-faint);
+    cursor: pointer;
+}
+
+.user-menu-trigger:hover,
+.user-menu-trigger[aria-expanded="true"] {
+    border-color: var(--line-strong);
+    background: var(--surface-hover);
+}
+
+.user-menu-trigger:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.user-menu-avatar {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius-pill);
+    background: var(--line-soft);
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--ink-muted);
+}
+
+.user-menu-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--ink);
+}
+
+.user-menu-chevron {
+    flex-shrink: 0;
+}
+
+.user-menu-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: default;
+}
+
+.user-menu-panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 20;
+    width: 236px;
+    padding: 6px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-panel);
+}
+
+.user-menu-identity {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px 12px;
+}
+
+.user-menu-panel-name {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.user-menu-panel-role {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--ink-faint);
+}
+
+.user-menu-divider {
+    height: 1px;
+    margin: 6px 4px;
+    background: var(--line-soft);
+}
+
+.user-menu-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: var(--tap);
+    padding: 0 12px;
+    box-sizing: border-box;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--ink);
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.user-menu-item:hover {
+    background: var(--surface-hover);
+    color: var(--ink);
+}
+
+.user-menu-logout {
+    font-weight: 600;
+    color: var(--accent-strong);
+}
+
+.user-menu-logout:hover {
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+}

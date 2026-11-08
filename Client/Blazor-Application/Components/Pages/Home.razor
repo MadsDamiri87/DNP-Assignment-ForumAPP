@@ -1,13 +1,258 @@
 ﻿@page "/"
+@inject IPostService PostService
+@inject ISubForumService SubForumService
 
 <PageTitle>Forum</PageTitle>
 
-<h1>Forum</h1>
+@if (loadError is not null)
+{
+    <div class="alert alert-danger">@loadError</div>
+}
+else
+{
+    <section class="hero">
+        <img class="hero-image" src="images/hero-desk.png" alt=""/>
+        <div class="hero-veil" aria-hidden="true"></div>
 
-<p>A small forum built on top of the Web API.</p>
+        <div class="hero-band">
+            <article class="lead">
+                @if (featured is PostDto lead)
+                {
+                    <span class="lead-eyebrow">Most discussed</span>
 
-<div class="list-group">
-    <a class="list-group-item list-group-item-action" href="posts">Posts</a>
-    <a class="list-group-item list-group-item-action" href="subforums">Sub-forums</a>
-    <a class="list-group-item list-group-item-action" href="users">Users</a>
-</div>
+                    <h1 class="lead-title">
+                        <a href="@($"posts/{lead.Id}")">@lead.Title</a>
+                    </h1>
+
+                    <p class="lead-excerpt">@Excerpt(lead.Body, 230)</p>
+
+                    <div class="lead-foot">
+                        <span class="avatar" aria-hidden="true">@Initial(lead.AuthorUserName)</span>
+
+                        <span class="lead-by">
+                            <span class="lead-author">@lead.AuthorUserName</span>
+                            <span class="lead-when">@Age(lead.CreatedAt) · @PlaceOf(lead)</span>
+                        </span>
+
+                        <a class="pill-btn pill-btn-accent lead-cta" href="@($"posts/{lead.Id}")">
+                            @ReadLabel(lead.CommentCount)
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <h1 class="lead-title lead-title-empty">Got a question?</h1>
+
+                    <p class="lead-excerpt">
+                        A small forum for third semester. Ask something, answer someone else,
+                        or just read along in one of the interests.
+                    </p>
+
+                    <div class="lead-foot">
+                        <AuthorizeView>
+                            <Authorized>
+                                <a class="pill-btn pill-btn-accent" href="posts/create">Write the first post</a>
+                            </Authorized>
+                            <NotAuthorized>
+                                <a class="pill-btn pill-btn-accent" href="login">Log in to post</a>
+                            </NotAuthorized>
+                        </AuthorizeView>
+                    </div>
+                }
+            </article>
+
+            <aside class="today">
+                <h2 class="today-title">Latest</h2>
+
+                @if (recent.Count == 0)
+                {
+                    <p class="today-note">Nothing else yet.</p>
+                }
+                else
+                {
+                    @foreach (PostDto post in recent)
+                    {
+                        <a class="today-row" href="@($"posts/{post.Id}")">
+                            <span class="today-row-title">@post.Title</span>
+                            <span class="today-row-meta">@post.AuthorUserName · @CommentLabel(post.CommentCount)</span>
+                        </a>
+                    }
+                }
+
+                <a class="today-all" href="posts">See everything →</a>
+            </aside>
+        </div>
+    </section>
+
+    <hr class="hero-rule"/>
+
+    <section class="section">
+        <div class="section-head">
+            <h2 class="section-title">Interests</h2>
+            <a class="section-link" href="subforums">All sub-forums</a>
+        </div>
+
+        <div class="interest-grid">
+            @foreach (SubForumDto subForum in subForums ?? [])
+            {
+                <a class="interest" href="@($"posts?subForumId={subForum.Id}")">
+                    <span class="interest-name">@subForum.Name</span>
+                    <span class="interest-description">@subForum.Description</span>
+                    <span class="interest-count">@PostCountLabel(CountPostsIn(subForum.Id))</span>
+                </a>
+            }
+
+            <AuthorizeView>
+                <Authorized>
+                    <a class="interest interest-new" href="subforums/create">
+                        <span class="interest-plus" aria-hidden="true">+</span>
+                        <span class="interest-name">New interest</span>
+                        <span class="interest-description">Missing a topic? Start one.</span>
+                    </a>
+                </Authorized>
+            </AuthorizeView>
+        </div>
+    </section>
+
+    @if (recommended.Count > 0)
+    {
+        <section class="section">
+            <div class="section-head">
+                <h2 class="section-title">Posts you might like</h2>
+                <a class="section-link" href="posts">See all posts</a>
+            </div>
+
+            <div class="suggest-grid">
+                @foreach (PostDto post in recommended)
+                {
+                    <article class="suggest">
+                        @if (SubForumNameOf(post) is string interest)
+                        {
+                            <span class="chip">@interest</span>
+                        }
+
+                        <h3 class="suggest-title">
+                            <a href="@($"posts/{post.Id}")">@post.Title</a>
+                        </h3>
+
+                        <p class="suggest-excerpt">@Excerpt(post.Body, 150)</p>
+
+                        <span class="suggest-foot">
+                            @post.AuthorUserName · @Age(post.CreatedAt) · @CommentLabel(post.CommentCount)
+                        </span>
+                    </article>
+                }
+            </div>
+        </section>
+    }
+}
+
+@code {
+    private List<PostDto>? posts;
+    private List<SubForumDto>? subForums;
+    private PostDto? featured;
+    private List<PostDto> recent = [];
+    private List<PostDto> recommended = [];
+    private string? loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            posts = await PostService.GetPostsAsync();
+            subForums = await SubForumService.GetSubForumsAsync();
+        }
+        catch (Exception e)
+        {
+            loadError = e.Message;
+            return;
+        }
+
+        featured = posts
+            .OrderByDescending(post => post.CommentCount)
+            .ThenByDescending(post => post.CreatedAt)
+            .FirstOrDefault();
+
+        recent = posts
+            .Where(post => post.Id != featured?.Id)
+            .OrderByDescending(post => post.CreatedAt)
+            .Take(4)
+            .ToList();
+
+        recommended = posts
+            .Where(post => post.Id != featured?.Id)
+            .OrderByDescending(post => post.CommentCount)
+            .ThenByDescending(post => post.CreatedAt)
+            .Take(2)
+            .ToList();
+    }
+
+    private int CountPostsIn(int subForumId) =>
+        posts?.Count(post => post.SubForumId == subForumId) ?? 0;
+
+    private string? SubForumNameOf(PostDto post) =>
+        subForums?.FirstOrDefault(subForum => subForum.Id == post.SubForumId)?.Name;
+
+    private string PlaceOf(PostDto post) => SubForumNameOf(post) ?? "No interest";
+
+    private static string PostCountLabel(int count) => count switch
+    {
+        0 => "No posts",
+        1 => "1 post",
+        _ => $"{count} posts"
+    };
+
+    private static string CommentLabel(int count) => count switch
+    {
+        0 => "No comments",
+        1 => "1 comment",
+        _ => $"{count} comments"
+    };
+
+    private static string ReadLabel(int count) => count switch
+    {
+        0 => "Read the post",
+        1 => "Read 1 comment",
+        _ => $"Read {count} comments"
+    };
+
+    private static string Initial(string userName) =>
+        string.IsNullOrWhiteSpace(userName) ? "?" : userName[..1].ToUpperInvariant();
+
+    private static string Age(DateTime createdAt)
+    {
+        TimeSpan age = DateTime.UtcNow - createdAt;
+
+        if (age.TotalHours < 1)
+        {
+            return $"{Math.Max(1, (int)age.TotalMinutes)}m";
+        }
+
+        if (age.TotalDays < 1)
+        {
+            return $"{(int)age.TotalHours}h";
+        }
+
+        if (age.TotalDays < 7)
+        {
+            return $"{(int)age.TotalDays}d";
+        }
+
+        return createdAt.ToLocalTime().ToString("d MMM");
+    }
+
+    private static string Excerpt(string body, int max)
+    {
+        string single = body.Replace('\r', ' ').Replace('\n', ' ').Trim();
+
+        if (single.Length <= max)
+        {
+            return single;
+        }
+
+        string cut = single[..max];
+        int lastSpace = cut.LastIndexOf(' ');
+
+        return (lastSpace > max * 2 / 3 ? cut[..lastSpace] : cut).TrimEnd() + "…";
+    }
+}

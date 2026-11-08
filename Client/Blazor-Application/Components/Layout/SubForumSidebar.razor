@@ -1,0 +1,80 @@
+@implements IDisposable
+@inject ISubForumService SubForumService
+@inject NavigationManager NavigationManager
+
+@if (!isHome)
+{
+    <aside class="sidebar">
+        <div class="panel">
+            <h2 class="panel-title">Sub-forums</h2>
+
+            @if (loadFailed)
+            {
+                <p class="sidebar-note">Could not load sub-forums.</p>
+            }
+            else if (subForums is null)
+            {
+                <p class="sidebar-note">Loading...</p>
+            }
+            else if (subForums.Count == 0)
+            {
+                <p class="sidebar-note">No sub-forums yet.</p>
+            }
+            else
+            {
+                <nav class="sidebar-nav">
+                    @foreach (SubForumDto subForum in subForums)
+                    {
+                        <a class="sidebar-link" href="@($"posts?subForumId={subForum.Id}")">@subForum.Name</a>
+                    }
+                </nav>
+            }
+        </div>
+    </aside>
+}
+
+@code {
+    private List<SubForumDto>? subForums;
+    private bool loadFailed;
+    private bool isHome;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isHome = IsHome();
+        NavigationManager.LocationChanged += OnLocationChanged;
+
+        try
+        {
+            subForums = await SubForumService.GetSubForumsAsync();
+        }
+        catch (Exception)
+        {
+            loadFailed = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        bool wasHome = isHome;
+        isHome = IsHome();
+
+        if (isHome != wasHome)
+        {
+            _ = InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private bool IsHome()
+    {
+        string relative = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        int queryStart = relative.IndexOf('?');
+        string path = queryStart < 0 ? relative : relative[..queryStart];
+
+        return path.Length == 0 || path.Equals("search", StringComparison.OrdinalIgnoreCase);
+    }
+}

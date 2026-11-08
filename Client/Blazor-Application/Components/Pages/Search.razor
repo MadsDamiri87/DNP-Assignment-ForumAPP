@@ -1,0 +1,291 @@
+@page "/search"
+@inject IPostService PostService
+@inject IUserService UserService
+@inject ISubForumService SubForumService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Search</PageTitle>
+
+<div class="search-head">
+    <h1 class="search-title">Search the forum</h1>
+    <p class="search-lead">Chances are someone already asked it. If not, the post is yours to write.</p>
+</div>
+
+<form class="search-form" role="search" @onsubmit="Submit" @onsubmit:preventDefault>
+    <svg class="search-icon" width="19" height="19" viewBox="0 0 20 20" fill="none"
+         stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+        <circle cx="8.75" cy="8.75" r="5.25"/>
+        <path d="m12.75 12.75 4 4"/>
+    </svg>
+
+    <label class="visually-hidden" for="searchQuery">@Label()</label>
+    <input id="searchQuery" class="search-input" type="search" placeholder="@Placeholder()"
+           @bind="query" @bind:event="oninput"/>
+
+    <button class="pill-btn pill-btn-accent" type="submit">Search</button>
+</form>
+
+<div class="scope">
+    <span class="scope-label">Search in</span>
+
+    <div class="segmented">
+        <button type="button" class="@ScopeClass(PostScope)" @onclick="() => SetScope(PostScope)">
+            Posts
+        </button>
+        <button type="button" class="@ScopeClass(UserScope)" @onclick="() => SetScope(UserScope)">
+            Users
+        </button>
+    </div>
+</div>
+
+@if (errorMessage is not null)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+else if (!hasQuery)
+{
+    @if (interests.Count > 0)
+    {
+        <div class="pill-row">
+            @foreach (SubForumDto subForum in interests)
+            {
+                <a class="topic-pill" href="@($"posts?subForumId={subForum.Id}")">@subForum.Name</a>
+            }
+        </div>
+    }
+
+    <h2 class="result-head">Latest posts</h2>
+    @RenderPosts(startPosts)
+}
+else if (scope == UserScope)
+{
+    <h2 class="result-head">@(needsLogin ? "Users" : ResultCount(users?.Count, "user", "users"))</h2>
+
+    @if (needsLogin)
+    {
+        <p class="result-empty">
+            Searching for users is only for signed-in members.
+            <a href="login">Log in →</a>
+        </p>
+    }
+    else if (users is null)
+    {
+        <p class="result-empty">Searching...</p>
+    }
+    else if (users.Count == 0)
+    {
+        <p class="result-empty">No users match “@query”.</p>
+    }
+    else
+    {
+        <div class="results">
+            @foreach (UserDto user in users)
+            {
+                <a class="result" href="@($"posts?userId={user.Id}")">
+                    <span class="avatar" aria-hidden="true">@Initial(user.UserName)</span>
+
+                    <span class="result-main">
+                        <span class="result-title">@user.UserName</span>
+                        <span class="result-meta">@user.Role · joined @user.CreatedAt.ToLocalTime().ToString("d MMM yyyy")</span>
+                    </span>
+
+                    <span class="result-side">See their posts →</span>
+                </a>
+            }
+        </div>
+    }
+}
+else
+{
+    <h2 class="result-head">@ResultCount(posts?.Count, "post", "posts")</h2>
+
+    @if (posts is null)
+    {
+        <p class="result-empty">Searching...</p>
+    }
+    else if (posts.Count == 0)
+    {
+        <p class="result-empty">
+            No post titles match “@query”.
+            <a href="posts/create">Write it as a new post →</a>
+        </p>
+    }
+    else
+    {
+        @RenderPosts(posts)
+    }
+}
+
+@code {
+    private const string PostScope = "posts";
+    private const string UserScope = "users";
+
+    [CascadingParameter] private Task<AuthenticationState>? AuthStateTask { get; set; }
+
+    [SupplyParameterFromQuery(Name = "q")] public string? Q { get; set; }
+    [SupplyParameterFromQuery(Name = "in")] public string? In { get; set; }
+
+    private List<PostDto>? posts;
+    private List<UserDto>? users;
+    private List<PostDto> startPosts = [];
+    private List<SubForumDto> interests = [];
+    private Dictionary<int, string> interestNames = [];
+    private string query = string.Empty;
+    private string scope = PostScope;
+    private bool hasQuery;
+    private bool needsLogin;
+    private string? errorMessage;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        scope = In == UserScope ? UserScope : PostScope;
+        query = Q?.Trim() ?? string.Empty;
+        hasQuery = query.Length > 0;
+        needsLogin = false;
+        errorMessage = null;
+
+        try
+        {
+            interests = await SubForumService.GetSubForumsAsync();
+            interestNames = interests.ToDictionary(interest => interest.Id, interest => interest.Name);
+
+            if (!hasQuery)
+            {
+                startPosts = (await PostService.GetPostsAsync())
+                    .OrderByDescending(post => post.CreatedAt)
+                    .Take(5)
+                    .ToList();
+
+                return;
+            }
+
+            if (scope == UserScope)
+            {
+                needsLogin = !await IsSignedInAsync();
+
+                if (!needsLogin)
+                {
+                    users = await UserService.GetUsersAsync(userNameContains: query);
+                }
+
+                return;
+            }
+
+            posts = (await PostService.GetPostsAsync(titleContains: query))
+                .OrderByDescending(post => post.CreatedAt)
+                .ToList();
+        }
+        catch (Exception e)
+        {
+            errorMessage = e.Message;
+        }
+    }
+
+    private async Task<bool> IsSignedInAsync()
+    {
+        if (AuthStateTask is null)
+        {
+            return false;
+        }
+
+        AuthenticationState state = await AuthStateTask;
+        return state.User.Identity?.IsAuthenticated == true;
+    }
+
+    private void Submit() =>
+        NavigationManager.NavigateTo($"search?q={Uri.EscapeDataString(query.Trim())}&in={scope}");
+
+    private void SetScope(string value)
+    {
+        if (scope == value)
+        {
+            return;
+        }
+
+        scope = value;
+
+        if (query.Trim().Length > 0)
+        {
+            Submit();
+        }
+    }
+
+    private string ScopeClass(string value) => scope == value ? "is-active" : string.Empty;
+
+    private string Label() => scope == UserScope ? "Search in usernames" : "Search in post titles";
+
+    private string Placeholder() => scope == UserScope
+        ? "username"
+        : "render modes, JWT, migrations…";
+
+    private static string ResultCount(int? count, string singular, string plural) => count switch
+    {
+        null => "Results",
+        1 => $"1 {singular} found",
+        _ => $"{count} {plural} found"
+    };
+
+    private string? InterestOf(PostDto post) =>
+        post.SubForumId.HasValue && interestNames.TryGetValue(post.SubForumId.Value, out string? name)
+            ? name
+            : null;
+
+    private static string Initial(string userName) =>
+        string.IsNullOrWhiteSpace(userName) ? "?" : userName[..1].ToUpperInvariant();
+
+    private static string CommentLabel(int count) => count switch
+    {
+        0 => "No comments",
+        1 => "1 comment",
+        _ => $"{count} comments"
+    };
+
+    private static string Age(DateTime createdAt)
+    {
+        TimeSpan age = DateTime.UtcNow - createdAt;
+
+        if (age.TotalHours < 1)
+        {
+            return $"{Math.Max(1, (int)age.TotalMinutes)}m";
+        }
+
+        if (age.TotalDays < 1)
+        {
+            return $"{(int)age.TotalHours}h";
+        }
+
+        if (age.TotalDays < 7)
+        {
+            return $"{(int)age.TotalDays}d";
+        }
+
+        return createdAt.ToLocalTime().ToString("d MMM");
+    }
+
+    private RenderFragment RenderPosts(List<PostDto> source) =>
+        @<div class="results">
+            @foreach (PostDto post in source)
+            {
+                <a class="result" href="@($"posts/{post.Id}")">
+                    <span class="avatar" aria-hidden="true">@Initial(post.AuthorUserName)</span>
+
+                    <span class="result-main">
+                        <span class="result-title">@post.Title</span>
+                        <span class="result-meta">
+                            @post.AuthorUserName
+                            @if (InterestOf(post) is string interest)
+                            {
+                                <span class="result-dot" aria-hidden="true">·</span>
+                                <span>@interest</span>
+                            }
+                        </span>
+                    </span>
+
+                    <span class="result-side">
+                        <span class="result-comments">@CommentLabel(post.CommentCount)</span>
+                        <span>@Age(post.CreatedAt)</span>
+                    </span>
+                </a>
+            }
+        </div>;
+}

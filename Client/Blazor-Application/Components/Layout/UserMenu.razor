@@ -1,0 +1,97 @@
+@using System.Security.Claims
+@implements IDisposable
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+
+<AuthorizeView>
+    <Authorized>
+        <div class="user-menu">
+            <button class="user-menu-trigger" type="button" aria-expanded="@isOpen" @onclick="ToggleMenu">
+                <span class="user-menu-avatar" aria-hidden="true">@Initial(context.User.Identity?.Name)</span>
+                <span class="user-menu-name">@context.User.Identity?.Name</span>
+                <svg class="user-menu-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 12 12"
+                     fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+                     stroke-linejoin="round">
+                    <path d="M3 4.5 6 7.5 9 4.5"/>
+                </svg>
+            </button>
+
+            @if (isOpen)
+            {
+                <button class="user-menu-backdrop" type="button" aria-label="Close the account menu"
+                        @onclick="CloseMenu"></button>
+
+                <div class="user-menu-panel">
+                    <div class="user-menu-identity">
+                        <span class="user-menu-avatar" aria-hidden="true">@Initial(context.User.Identity?.Name)</span>
+                        <div>
+                            <p class="user-menu-panel-name">@context.User.Identity?.Name</p>
+                            <p class="user-menu-panel-role">@RoleOf(context.User)</p>
+                        </div>
+                    </div>
+
+                    <div class="user-menu-divider"></div>
+
+                    @if (UserIdOf(context.User) is int userId)
+                    {
+                        <a class="user-menu-item" href="@($"posts?userId={userId}")">My posts</a>
+                    }
+
+                    <a class="user-menu-item" href="subforums/create">New sub-forum</a>
+
+                    <div class="user-menu-divider"></div>
+
+                    <button class="user-menu-item user-menu-logout" type="button" @onclick="LogoutAsync">Log out</button>
+                </div>
+            }
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        <a class="pill-btn pill-btn-ghost" href="login">Log in</a>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private bool isOpen;
+
+    protected override void OnInitialized()
+    {
+        NavigationManager.LocationChanged += CloseOnNavigation;
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= CloseOnNavigation;
+    }
+
+    private void ToggleMenu() => isOpen = !isOpen;
+
+    private void CloseMenu() => isOpen = false;
+
+    private void CloseOnNavigation(object? sender, LocationChangedEventArgs e)
+    {
+        if (!isOpen)
+        {
+            return;
+        }
+
+        isOpen = false;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LogoutAsync()
+    {
+        isOpen = false;
+        await AuthService.LogoutAsync();
+        NavigationManager.NavigateTo("");
+    }
+
+    private static string Initial(string? userName) =>
+        string.IsNullOrWhiteSpace(userName) ? "?" : userName[..1].ToUpperInvariant();
+
+    private static string RoleOf(ClaimsPrincipal user) =>
+        user.FindFirst("Role")?.Value ?? "Signed in";
+
+    private static int? UserIdOf(ClaimsPrincipal user) =>
+        int.TryParse(user.FindFirst("Id")?.Value, out int id) ? id : null;
+}

@@ -7,4 +7,5 @@ public record PostDto(
     int UserId,
     string AuthorUserName,
     int? SubForumId,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    int CommentCount);
