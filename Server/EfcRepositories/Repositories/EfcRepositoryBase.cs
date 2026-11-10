@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using RepositoryContracts;
 
-namespace EfcRepositories.EFCRepositories;
+namespace EfcRepositories.Repositories;
 
 public abstract class EfcRepositoryBase<T> : IRepository<T> where T : class, IEntity
 {
@@ -33,7 +33,12 @@ public abstract class EfcRepositoryBase<T> : IRepository<T> where T : class, IEn
 
     public async Task DeleteAsync(int id)
     {
-        T existing = await GetSingleAsync(id);
+        T? existing = await GetSingleAsync(id);
+        
+        if (existing is null)
+        {
+            throw new InvalidOperationException(NotFoundMessage(id));
+        }
         
         ctx.Set<T>().Remove(existing);
         await ctx.SaveChangesAsync();

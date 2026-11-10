@@ -1,11 +1,12 @@
 using System.Text;
 using ApiContracts.Auth;
-using FileRepository;
+using EfcRepositories.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using RepositoryContracts;
 using ServiceContracts;
 using Services;
+using AppContext = EfcRepositories.AppContext;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,10 +14,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddScoped<IPostRepository, PostFileRepository>();
-builder.Services.AddScoped<IUserRepository, UserFileRepository>();
-builder.Services.AddScoped<ICommentRepository, CommentFileRepository>();
-builder.Services.AddScoped<ISubForumRepository, SubForumFileRepository>();
+// builder.Services.AddScoped<IPostRepository, PostFileRepository>();
+// builder.Services.AddScoped<IUserRepository, UserFileRepository>();
+// builder.Services.AddScoped<ICommentRepository, CommentFileRepository>();
+// builder.Services.AddScoped<ISubForumRepository, SubForumFileRepository>();
+
+builder.Services.AddDbContext<AppContext>();
+builder.Services.AddScoped<IPostRepository, EfcPostRepository>();
+builder.Services.AddScoped<IUserRepository, EfcUserRepository>();
+builder.Services.AddScoped<ICommentRepository, EfcCommentRepository>();
+builder.Services.AddScoped<ISubForumRepository, EfcSubForumRepository>();
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IPostService, PostService>();

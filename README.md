@@ -3,7 +3,7 @@
 
 Dette repository indeholder en forum-applikation til kurset **DNP - .NET Programmering**. Projektet tager udgangspunkt i et Reddit-lignende forum, hvor brugere kan oprette posts, skrive kommentarer og organisere posts i subforums.
 
-Applikationen er bygget op over flere assignments: domænemodel og repositories, en Command Line Interface, filbaseret persistence, en Web API, en Blazor-frontend, som brugerne kan betjene forummet fra, og login med JWT. Entity Framework Core er påbegyndt, men der er endnu ikke en database.
+Applikationen er bygget op over flere assignments: domænemodel og repositories, en Command Line Interface, filbaseret persistence, en Web API, en Blazor-frontend, som brugerne kan betjene forummet fra, og login med JWT. Entity Framework Core er sat op med en SQLite-database, men Web API'en kører stadig på de filbaserede repositories.
 
 <a href="docs/screenshots/landing-page.png" target="_blank" rel="noopener">
   <img src="docs/screenshots/landing-page.png" alt="Forsiden i Blazor-frontenden" width="800">
@@ -51,15 +51,16 @@ Domænemodellen viser de centrale entities i systemet og relationerne mellem dem
 
 Alle entities implementerer `IEntity`, som sikrer at de har et `Id` af typen `int`.
 
-Projektet modellerer relationer med foreign keys i stedet for direkte associationer som `List<Comment>` eller `User Author`:
+Hver relation består af en foreign key og en navigation property:
 
-- En `Post` har en `UserId`, som peger på den bruger, der har skrevet opslaget.
-- En `Post` har en `SubForumId`, som peger på det subforum, opslaget hører til. Feltet er valgfrit (`int?`), så en post kan eksistere uden subforum.
-- En `Comment` har en `PostId`, som peger på det post, kommentaren hører til.
-- En `Comment` har en `UserId`, som peger på den bruger, der har skrevet kommentaren.
-- En `SubForum` har en `CreatorUserId`, som peger på brugeren, der oprettede subforummet.
+- En `Post` har `UserId` + `User`, som peger på den bruger, der har skrevet opslaget.
+- En `Post` har `SubForumId` + `SubForum`, som peger på det subforum, opslaget hører til. Foreign keyen er valgfri (`int?`), så en post kan eksistere uden subforum.
+- En `Comment` har `PostId` + `Post` og `UserId` + `User`.
+- En `SubForum` har `CreatorUserId` + `CreatorUser`.
 
-Denne tilgang matcher den måde relationer senere kan gemmes i en relationel database.
+Modsat vej har `User` samlingerne `CreatedPosts`, `CreatedComments` og `CreatedSubForums`, `SubForum` har `Posts`, og `Post` har `Comments`.
+
+Foreign keyen er den, der gemmes som kolonne i databasen. Navigation propertyen findes kun i hukommelsen og udfyldes, når man beder om den med `Include`.
 
 </details>
 
@@ -79,7 +80,7 @@ DNP-Assignment-ForumAPP/
 │   ├── RepositoryContracts/     Interfaces for data-adgang
 │   ├── InMemoryRepositories/    Repositories baseret på lister + DataSeeder
 │   ├── FileRepository/          Repositories der gemmer data som JSON-filer
-│   ├── EfcRepositories/         Entity Framework Core og AppContext (under opbygning)
+│   ├── EfcRepositories/         AppContext, migrations og SQLite-databasen (under opbygning)
 │   ├── ServiceContracts/        Interfaces for services
 │   ├── Services/                Forretningslogik, validering og mapping til DTO'er
 │   ├── CLI/                     Command Line Interface (Assignment 2)
@@ -244,6 +245,7 @@ dotnet test Tests/Tests.csproj
 - Class Library projects
 - Asynkrone repository-metoder med `Task`
 - `IQueryable<T>` til filtrering med LINQ
+- Entity Framework Core med SQLite og migrations
 - JSON-filer som persistence
 - xUnit og Moq
 
@@ -267,13 +269,12 @@ Implementeret:
 - Login med JWT i både Web API og Blazor-frontend
 - Ejerskab: kun forfatteren eller en admin kan ændre og slette
 - Unit tests og integration tests
-- `EfcRepositories` med NuGet-pakker og en `AppContext`
+- `EfcRepositories` med `AppContext`, navigation properties på entities, migrationen `initial` og databasen `app.db`
 
 Ikke implementeret endnu:
 
-- Navigation properties på entities — de bruger stadig kun fremmednøgler
-- Migration og `app.db`
 - De fire EFC-repositories, og at skifte `Program.cs` over til dem
+- Soft delete af brugere — feltet `User.IsDeleted` findes, men bruges ikke endnu
 - Hashing af passwords
 
 </details>

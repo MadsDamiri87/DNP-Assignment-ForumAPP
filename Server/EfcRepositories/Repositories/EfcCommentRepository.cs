@@ -1,7 +1,7 @@
 ﻿using Entities;
 using RepositoryContracts;
 
-namespace EfcRepositories.EFCRepositories;
+namespace EfcRepositories.Repositories;
 
 public class EfcCommentRepository : EfcRepositoryBase<Comment>, ICommentRepository
 {
