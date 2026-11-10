@@ -7,7 +7,7 @@
         <nav class="topbar-nav">
             <NavLink class="topbar-link" href="" Match="NavLinkMatch.All">Home</NavLink>
             <NavLink class="topbar-link" href="posts">Posts</NavLink>
-            <NavLink class="topbar-link" href="subforums">Sub-forums</NavLink>
+            <NavLink class="topbar-link" href="subforums">Forums</NavLink>
             <NavLink class="topbar-link" href="users">Users</NavLink>
         </nav>
 
@@ -24,9 +24,37 @@
                 <Authorized>
                     <a class="pill-btn pill-btn-accent" href="posts/create">New post</a>
                 </Authorized>
+                <NotAuthorized>
+                    <button class="pill-btn pill-btn-ghost" type="button" @onclick="OpenLogin">Log in</button>
+                    <button class="pill-btn pill-btn-accent" type="button" @onclick="OpenSignUp">Create account</button>
+                </NotAuthorized>
             </AuthorizeView>
 
             <UserMenu/>
         </div>
     </div>
 </header>
+
+<AccountDialog IsOpen="isDialogOpen" SignUp="signUp" SignUpChanged="OnSignUpChanged"
+               OnClose="CloseDialog" OnSignedIn="CloseDialog"/>
+
+@code {
+    private bool isDialogOpen;
+    private bool signUp;
+
+    private void OpenLogin()
+    {
+        signUp = false;
+        isDialogOpen = true;
+    }
+
+    private void OpenSignUp()
+    {
+        signUp = true;
+        isDialogOpen = true;
+    }
+
+    private void OnSignUpChanged(bool value) => signUp = value;
+
+    private void CloseDialog() => isDialogOpen = false;
+}

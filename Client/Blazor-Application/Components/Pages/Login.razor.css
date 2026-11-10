@@ -1,0 +1,13 @@
+.login-page {
+    display: flex;
+    justify-content: center;
+    padding: 28px 0 44px;
+}
+
+.login-panel {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 424px;
+    padding: 28px 32px 30px;
+    box-shadow: var(--shadow-panel);
+}

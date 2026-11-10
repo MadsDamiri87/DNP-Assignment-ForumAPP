@@ -1,0 +1,68 @@
+.account-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(28, 25, 23, 0.55);
+    overflow-y: auto;
+}
+
+.account-dismiss {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: default;
+}
+
+.account-dialog {
+    position: relative;
+    z-index: 1;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 424px;
+    margin: auto;
+    padding: 28px 32px 30px;
+    background: var(--surface);
+    border-radius: var(--radius-card);
+    box-shadow: 0 24px 60px rgba(28, 25, 23, 0.34);
+}
+
+.account-close {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--ink-faint);
+    cursor: pointer;
+}
+
+.account-close:hover {
+    background: var(--line-soft);
+    color: var(--ink);
+}
+
+.account-close:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+@media (max-width: 520px) {
+    .account-dialog {
+        padding: 24px 20px 26px;
+    }
+}

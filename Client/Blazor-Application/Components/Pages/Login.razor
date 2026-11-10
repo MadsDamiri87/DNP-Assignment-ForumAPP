@@ -1,56 +1,18 @@
 ﻿@page "/login"
-@inject IAuthApiService AuthApiService
 @inject NavigationManager NavigationManager
 
 <PageTitle>Log in</PageTitle>
 
-<h1>Log in</h1>
-
-<div class="mb-3">
-    <label class="form-label" for="userName">Username</label>
-    <input id="userName" class="form-control" @bind="userName"/>
+<div class="login-page">
+    <div class="panel login-panel">
+        <AccountForm SignUp="signUp" SignUpChanged="OnSignUpChanged" OnSignedIn="GoHome"/>
+    </div>
 </div>
-
-<div class="mb-3">
-    <label class="form-label" for="password">Password</label>
-    <input id="password" class="form-control" type="password" @bind="password"/>
-</div>
-
-<button class="btn btn-primary" @onclick="LoginAsync" disabled="@isLoggingIn">Log in</button>
-
-@if (loginError is not null)
-{
-    <div class="alert alert-danger mt-3">@loginError</div>
-}
 
 @code {
-    private string userName = string.Empty;
-    private string password = string.Empty;
+    private bool signUp;
 
-    private string? loginError;
-    private bool isLoggingIn;
-    
-    private async Task LoginAsync()
-    {
-        loginError = null;
-        isLoggingIn = true;
+    private void OnSignUpChanged(bool value) => signUp = value;
 
-        try
-        {
-            await AuthApiService.LoginAsync(userName, password);
-            NavigationManager.NavigateTo("");
-        }
-        catch (Exception e)
-        {
-            loginError = e.Message;
-        }
-        finally
-        {
-            isLoggingIn = false;
-        }
-        
-    }
-    
-    
-    
+    private void GoHome() => NavigationManager.NavigateTo("");
 }

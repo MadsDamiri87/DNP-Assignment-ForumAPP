@@ -1,0 +1,174 @@
+@inject IAuthApiService AuthApiService
+@inject IUserApiService UserApiService
+
+<div class="account-form">
+    <div class="segmented account-tabs">
+        <button type="button" class="@(SignUp ? "" : "is-active")" aria-pressed="@(!SignUp)"
+                @onclick="() => SetTabAsync(false)">
+            Log in
+        </button>
+        <button type="button" class="@(SignUp ? "is-active" : "")" aria-pressed="@SignUp"
+                @onclick="() => SetTabAsync(true)">
+            Create account
+        </button>
+    </div>
+
+    @if (SignUp)
+    {
+        <h2 class="account-title">Create an account</h2>
+        <p class="account-sub">Pick a username. You will be signed in right away.</p>
+
+        <div class="account-fields">
+            <div class="account-field">
+                <label class="account-label" for="new-username">Username</label>
+                <input class="field" id="new-username" @bind="userName"/>
+            </div>
+
+            <div class="account-field">
+                <label class="account-label" for="new-email">Email</label>
+                <input class="field" id="new-email" type="email" @bind="email"/>
+            </div>
+
+            <div class="account-field">
+                <label class="account-label" for="new-password">Password</label>
+                <input class="field" id="new-password" type="password" @bind="password"/>
+            </div>
+
+            <div class="account-field">
+                <label class="account-label" for="repeat-password">Repeat password</label>
+                <input class="field" id="repeat-password" type="password" @bind="repeatPassword"/>
+            </div>
+
+            <button class="pill-btn pill-btn-accent account-submit" type="button"
+                    @onclick="CreateAccountAsync" disabled="@isBusy">
+                Create account
+            </button>
+        </div>
+    }
+    else
+    {
+        <h2 class="account-title">Welcome back</h2>
+        <p class="account-sub">Sign in to write posts and join the discussion.</p>
+
+        <div class="account-fields">
+            <div class="account-field">
+                <label class="account-label" for="login-username">Username</label>
+                <input class="field" id="login-username" @bind="userName"/>
+            </div>
+
+            <div class="account-field">
+                <label class="account-label" for="login-password">Password</label>
+                <input class="field" id="login-password" type="password" @bind="password"/>
+            </div>
+
+            <button class="pill-btn pill-btn-accent account-submit" type="button"
+                    @onclick="LoginAsync" disabled="@isBusy">
+                Log in
+            </button>
+        </div>
+    }
+
+    @if (errorMessage is not null)
+    {
+        <div class="alert alert-danger account-error">@errorMessage</div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public bool SignUp { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> SignUpChanged { get; set; }
+
+    [Parameter]
+    public EventCallback OnSignedIn { get; set; }
+
+    private string userName = string.Empty;
+    private string email = string.Empty;
+    private string password = string.Empty;
+    private string repeatPassword = string.Empty;
+
+    private string? errorMessage;
+    private bool isBusy;
+
+    private async Task SetTabAsync(bool signUp)
+    {
+        if (SignUp == signUp)
+        {
+            return;
+        }
+
+        errorMessage = null;
+        password = string.Empty;
+        repeatPassword = string.Empty;
+
+        SignUp = signUp;
+        await SignUpChanged.InvokeAsync(signUp);
+    }
+
+    private async Task LoginAsync()
+    {
+        errorMessage = null;
+        isBusy = true;
+
+        try
+        {
+            await AuthApiService.LoginAsync(userName, password);
+            await OnSignedIn.InvokeAsync();
+        }
+        catch (Exception e)
+        {
+            errorMessage = e.Message;
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+
+    private async Task CreateAccountAsync()
+    {
+        errorMessage = null;
+
+        if (string.IsNullOrWhiteSpace(password) || password != repeatPassword)
+        {
+            errorMessage = "The two passwords do not match.";
+            return;
+        }
+
+        isBusy = true;
+
+        try
+        {
+            CreateUserDto request = new()
+            {
+                UserName = userName,
+                Password = password,
+                Email = email
+            };
+
+            await UserApiService.AddAsync(request);
+        }
+        catch (Exception e)
+        {
+            errorMessage = e.Message;
+            isBusy = false;
+            return;
+        }
+
+        try
+        {
+            await AuthApiService.LoginAsync(userName, password);
+            await OnSignedIn.InvokeAsync();
+        }
+        catch (Exception e)
+        {
+            errorMessage = $"The account was created, but signing in failed: {e.Message} Use the Log in tab.";
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+}
