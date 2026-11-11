@@ -36,10 +36,10 @@ public class CommentServiceTests
     }
 
     [Fact]
-    public void ShouldShowTheDeletedUserName_WhenManyCommentsAreFetchedAndTheAuthorIsGone()
+    public async Task ShouldShowTheDeletedUserName_WhenManyCommentsAreFetchedAndTheAuthorIsGone()
     {
         // Act
-        List<CommentDto> found = service.GetMany().ToList();
+        List<CommentDto> found = (await service.GetManyAsync()).ToList();
 
         // Assert
         Assert.All(found, comment => Assert.Equal(DeletedUser.UserName, comment.AuthorUserName));

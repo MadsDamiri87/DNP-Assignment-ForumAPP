@@ -56,13 +56,13 @@ public class PostsController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<PostDto>> GetPosts(
+    public async Task<ActionResult<IEnumerable<PostDto>>> GetPosts(
         [FromQuery] string? titleContains,
         [FromQuery] int? userId,
         [FromQuery] string? userNameContains,
         [FromQuery] int? subForumId)
     {
-        return Ok(postService.GetMany(titleContains, userId, userNameContains, subForumId));
+        return Ok(await postService.GetManyAsync(titleContains, userId, userNameContains, subForumId));
     }
 
     [HttpGet("{id:int}/comments")]
@@ -71,7 +71,7 @@ public class PostsController : ControllerBase
         try
         {
             await postService.GetSingleAsync(id);
-            return Ok(commentService.GetMany(postId: id));
+            return Ok(await commentService.GetManyAsync(postId: id));
         }
         catch (InvalidOperationException e)
         {

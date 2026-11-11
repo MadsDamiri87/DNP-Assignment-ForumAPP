@@ -189,7 +189,7 @@ public class UserServiceTests
         int expectedCount = 2;
 
         // Act
-        int count = service.GetMany().Count();
+        int count = (await service.GetManyAsync()).Count();
 
         // Assert
         Assert.Equal(expectedCount, count);
@@ -205,7 +205,7 @@ public class UserServiceTests
         await service.CreateAsync(NewRequest());
 
         // Act
-        List<UserDto> found = service.GetMany(filter).ToList();
+        List<UserDto> found = (await service.GetManyAsync(filter)).ToList();
 
         // Assert
         Assert.Equal(ValidUserName, Assert.Single(found).UserName);

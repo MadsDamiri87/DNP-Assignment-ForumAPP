@@ -48,9 +48,9 @@ public class UsersController : ControllerBase
 
     [Authorize]
     [HttpGet]
-    public ActionResult<IEnumerable<UserDto>> GetUsers([FromQuery] string? userNameContains)
+    public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers([FromQuery] string? userNameContains)
     {
-        return Ok(userService.GetMany(userNameContains));
+        return Ok(await userService.GetManyAsync(userNameContains));
     }
 
     [Authorize]

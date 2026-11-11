@@ -33,7 +33,7 @@ public class SubForumsController : ControllerBase
         try
         {
             SubForumDto created = await subForumService.CreateAsync(request, userId.Value);
-            return Created($"/subforums/{created.Id}", created);
+            return Created($"/{created.Id}", created);
         }
         catch (ArgumentException e)
         {
@@ -56,9 +56,9 @@ public class SubForumsController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<SubForumDto>> GetSubForums([FromQuery] string? nameContains, [FromQuery] int? creatorUserId)
+    public async Task<ActionResult<IEnumerable<SubForumDto>>> GetSubForums([FromQuery] string? nameContains, [FromQuery] int? creatorUserId)
     {
-        return Ok(subForumService.GetMany(nameContains, creatorUserId));
+        return Ok(await subForumService.GetManyAsync(nameContains, creatorUserId));
     }
 
     [HttpGet("{id:int}/posts")]
@@ -67,7 +67,7 @@ public class SubForumsController : ControllerBase
         try
         {
             await subForumService.GetSingleAsync(id);
-            return Ok(postService.GetMany(subForumId: id));
+            return Ok(await postService.GetManyAsync(subForumId: id));
         }
         catch (InvalidOperationException e)
         {

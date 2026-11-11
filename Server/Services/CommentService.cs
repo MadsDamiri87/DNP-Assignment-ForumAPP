@@ -1,5 +1,6 @@
 ﻿using ApiContracts;
 using Entities;
+using Microsoft.EntityFrameworkCore;
 using RepositoryContracts;
 using ServiceContracts;
 
@@ -46,35 +47,28 @@ public class CommentService : ICommentService
 
         Comment existing = await commentRepository.GetSingleAsync(id);
         Ownership.Ensure(existing.UserId, caller, "comment");
-        
-        Comment updated = new()
-        {
-            Id = existing.Id,
-            Body = request.Body.Trim(),
-            PostId = existing.PostId,
-            UserId = existing.UserId,
-            CreatedAt = existing.CreatedAt
-        };
 
-        await commentRepository.UpdateAsync(updated);
-        return ToDto(updated, FindUserName(updated.UserId));
+        existing.Body = request.Body.Trim();
+
+        await commentRepository.UpdateAsync(existing);
+        return ToDto(existing, await FindUserNameAsync(existing.UserId));
     }
 
     public async Task DeleteAsync(int id, Caller caller)
     {
         Comment existing = await commentRepository.GetSingleAsync(id);
         Ownership.Ensure(existing.UserId, caller, "comment");
-        
+
         await commentRepository.DeleteAsync(id);
     }
 
     public async Task<CommentDto> GetSingleAsync(int id)
     {
         Comment comment = await commentRepository.GetSingleAsync(id);
-        return ToDto(comment, FindUserName(comment.UserId));
+        return ToDto(comment, await FindUserNameAsync(comment.UserId));
     }
 
-    public IEnumerable<CommentDto> GetMany(
+    public async Task<IEnumerable<CommentDto>> GetManyAsync(
         int? postId = null,
         int? userId = null,
         string? userNameContains = null)
@@ -94,18 +88,22 @@ public class CommentService : ICommentService
         if (!string.IsNullOrWhiteSpace(userNameContains))
         {
             string filter = userNameContains.Trim().ToLower();
-            List<int> matchingUserIds = userRepository.GetMany()
+
+            List<int> matchingUserIds = await userRepository.GetMany()
                 .Where(user => user.UserName.ToLower().Contains(filter))
                 .Select(user => user.Id)
-                .ToList();
+                .ToListAsync();
 
             comments = comments.Where(comment => matchingUserIds.Contains(comment.UserId));
         }
 
-        Dictionary<int, string> userNames = userRepository.GetMany()
-            .ToDictionary(user => user.Id, user => user.UserName);
+        Dictionary<int, string> userNames = await userRepository.GetMany()
+            .ToDictionaryAsync(user => user.Id, user => user.UserName);
 
-        return comments
+        List<Comment> loadComments = await comments.ToListAsync();
+
+
+        return loadComments
             .Select(comment => ToDto(comment, userNames.GetValueOrDefault(comment.UserId, DeletedUser.UserName)))
             .ToList();
     }
@@ -142,9 +140,9 @@ public class CommentService : ICommentService
         }
     }
 
-    private string FindUserName(int userId)
+    private async Task<string> FindUserNameAsync(int userId)
     {
-        User? user = userRepository.GetMany().FirstOrDefault(candidate => candidate.Id == userId);
+        User? user = await userRepository.GetMany().FirstOrDefaultAsync(candidate => candidate.Id == userId);
         return user?.UserName ?? DeletedUser.UserName;
     }
 

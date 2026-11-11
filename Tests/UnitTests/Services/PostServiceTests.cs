@@ -88,10 +88,10 @@ public class PostServiceTests
     }
 
     [Fact]
-    public void ShouldShowTheDeletedUserName_WhenManyPostsAreFetchedAndTheAuthorIsGone()
+    public async Task ShouldShowTheDeletedUserName_WhenManyPostsAreFetchedAndTheAuthorIsGone()
     {
         // Act
-        List<PostDto> found = service.GetMany().ToList();
+        List<PostDto> found = (await service.GetManyAsync()).ToList();
 
         // Assert
         Assert.All(found, post => Assert.Equal(DeletedUser.UserName, post.AuthorUserName));
@@ -181,10 +181,10 @@ public class PostServiceTests
     }
 
     [Fact]
-    public void ShouldCountCommentsPerPost_WhenManyPostsAreFetched()
+    public async Task ShouldCountCommentsPerPost_WhenManyPostsAreFetched()
     {
         // Act
-        List<PostDto> found = service.GetMany().ToList();
+        List<PostDto> found = (await service.GetManyAsync()).ToList();
 
         // Assert
         Assert.Equal(2, found.Single(post => post.Id == 1).CommentCount);

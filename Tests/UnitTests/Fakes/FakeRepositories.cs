@@ -53,7 +53,7 @@ public class FakeRepository<T> : IRepository<T> where T : IEntity
         return Task.FromResult(entity);
     }
 
-    public IQueryable<T> GetMany() => Items.AsQueryable();
+    public IQueryable<T> GetMany() => new AsyncTestQuery<T>(Items);
 }
 
 public class FakeUserRepository : FakeRepository<User>, IUserRepository;

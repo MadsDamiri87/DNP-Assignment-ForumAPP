@@ -4,6 +4,6 @@ namespace ServiceContracts;
 
 public interface IUserService : ICreatableService<UserDto, CreateUserDto, UpdateUserDto>
 {
-    IEnumerable<UserDto> GetMany(
+    Task<IEnumerable<UserDto>> GetManyAsync(
         string? userNameContains = null);
 }

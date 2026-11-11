@@ -1,5 +1,6 @@
 ﻿using ApiContracts;
 using Entities;
+using Microsoft.EntityFrameworkCore;
 using RepositoryContracts;
 using ServiceContracts;
 
@@ -14,17 +15,17 @@ public class AuthService : IAuthService
         this.userRepository = userRepository;
     }
 
-    public Task<UserDto?> ValidateUserAsync(AuthDto request)
+    public async Task<UserDto?> ValidateUserAsync(AuthDto request)
     {
-        User? user = userRepository.GetMany()
-            .FirstOrDefault(candidate =>
+        User? user = await userRepository.GetMany()
+            .FirstOrDefaultAsync(candidate =>
                 candidate.UserName.ToLower() == request.UserName.Trim().ToLower());
 
         if (user == null || user.Password != request.Password)
         {
-            return Task.FromResult<UserDto?>(null);
+            return null;
         }
-        return Task.FromResult<UserDto?>(ToDto(user));
+        return ToDto(user);
     }
     
     private static UserDto ToDto(User user)=>

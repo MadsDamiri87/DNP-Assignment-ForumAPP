@@ -4,7 +4,7 @@ namespace ServiceContracts;
 
 public interface ISubForumService : IAuthoredService<SubForumDto, CreateSubForumDto, UpdateSubForumDto>
 {
-    IEnumerable<SubForumDto> GetMany(
+    Task<IEnumerable<SubForumDto>> GetManyAsync(
         string? nameContains = null, 
         int? creatorUserId = null);
 }

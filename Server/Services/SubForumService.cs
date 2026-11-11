@@ -1,5 +1,6 @@
 ﻿using ApiContracts;
 using Entities;
+using Microsoft.EntityFrameworkCore;
 using RepositoryContracts;
 using ServiceContracts;
 
@@ -24,7 +25,7 @@ public class SubForumService : ISubForumService
     public async Task<SubForumDto> CreateAsync(CreateSubForumDto request, int userId)
     {
         ValidateFields(request.Name, request.Description);
-        EnsureNameIsAvailable(request.Name);
+        await EnsureNameIsAvailableAsync(request.Name);
 
         User creator = await GetExistingUserAsync(userId);
 
@@ -47,27 +48,22 @@ public class SubForumService : ISubForumService
         SubForum existing = await subForumRepository.GetSingleAsync(id);
         Ownership.Ensure(existing.CreatorUserId, caller, "sub-forum");
 
-        SubForum updated = new()
-        {
-            Id = existing.Id,
-            Name = request.Name.Trim(),
-            Description = request.Description.Trim(),
-            CreatorUserId = existing.CreatorUserId,
-            CreatedAt = existing.CreatedAt
-        };
+        existing.Name = request.Name.Trim();
+        existing.Description = request.Description.Trim();
 
-        await subForumRepository.UpdateAsync(updated);
-        return ToDto(updated, FindUserName(updated.CreatorUserId));
+        await subForumRepository.UpdateAsync(existing);
+
+        return ToDto(existing, await FindUserNameAsync(existing.CreatorUserId));
     }
 
     public async Task DeleteAsync(int id, Caller caller)
     {
         SubForum existing = await subForumRepository.GetSingleAsync(id);
         Ownership.Ensure(existing.CreatorUserId, caller, "sub-forum");
-        
-        List<Post> postsInSubForum = postRepository.GetMany()
+
+        List<Post> postsInSubForum = await postRepository.GetMany()
             .Where(post => post.SubForumId == id)
-            .ToList();
+            .ToListAsync();
 
         foreach (Post post in postsInSubForum)
         {
@@ -80,10 +76,10 @@ public class SubForumService : ISubForumService
     public async Task<SubForumDto> GetSingleAsync(int id)
     {
         SubForum subForum = await subForumRepository.GetSingleAsync(id);
-        return ToDto(subForum, FindUserName(subForum.CreatorUserId));
+        return ToDto(subForum, await FindUserNameAsync(subForum.CreatorUserId));
     }
 
-    public IEnumerable<SubForumDto> GetMany(string? nameContains = null, int? creatorUserId = null)
+    public async Task<IEnumerable<SubForumDto>> GetManyAsync(string? nameContains = null, int? creatorUserId = null)
     {
         IQueryable<SubForum> subForums = subForumRepository.GetMany();
 
@@ -98,10 +94,12 @@ public class SubForumService : ISubForumService
             subForums = subForums.Where(subForum => subForum.CreatorUserId == creatorUserId.Value);
         }
 
-        Dictionary<int, string> userNames = userRepository.GetMany()
-            .ToDictionary(user => user.Id, user => user.UserName);
+        Dictionary<int, string> userNames = await userRepository.GetMany()
+            .ToDictionaryAsync(user => user.Id, user => user.UserName);
 
-        return subForums
+        List<SubForum> loadedSubForums = await subForums.ToListAsync();
+
+        return loadedSubForums
             .Select(subForum => ToDto(subForum, userNames.GetValueOrDefault(subForum.CreatorUserId, DeletedUser.UserName)))
             .ToList();
     }
@@ -114,12 +112,12 @@ public class SubForumService : ISubForumService
         }
     }
 
-    private void EnsureNameIsAvailable(string name, int? ignoredSubForumId = null)
+    private async Task EnsureNameIsAvailableAsync(string name, int? ignoredSubForumId = null)
     {
         string trimmed = name.Trim();
 
-        bool taken = subForumRepository.GetMany()
-            .Any(subForum => subForum.Id != ignoredSubForumId
+        bool taken = await subForumRepository.GetMany()
+            .AnyAsync(subForum => subForum.Id != ignoredSubForumId
                              && subForum.Name.ToLower() == trimmed.ToLower());
 
         if (taken)
@@ -140,9 +138,9 @@ public class SubForumService : ISubForumService
         }
     }
 
-    private string FindUserName(int userId)
+    private async Task<string> FindUserNameAsync(int userId)
     {
-        User? user = userRepository.GetMany().FirstOrDefault(candidate => candidate.Id == userId);
+        User? user = await userRepository.GetMany().FirstOrDefaultAsync(candidate => candidate.Id == userId);
         return user?.UserName ?? DeletedUser.UserName;
     }
 

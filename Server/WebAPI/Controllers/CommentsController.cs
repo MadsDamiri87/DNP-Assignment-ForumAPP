@@ -54,12 +54,13 @@ public class CommentsController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<CommentDto>> GetComments(
+    public async Task<ActionResult<IEnumerable<CommentDto>>> GetCommentsAsync(
         [FromQuery] int? postId,
         [FromQuery] int? userId,
         [FromQuery] string? userNameContains)
     {
-        return Ok(commentService.GetMany(postId, userId, userNameContains));
+
+         return Ok(await commentService.GetManyAsync(postId, userId, userNameContains));
     }
 
     [Authorize]

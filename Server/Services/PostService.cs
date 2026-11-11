@@ -1,5 +1,6 @@
 ﻿using ApiContracts;
 using Entities;
+using Microsoft.EntityFrameworkCore;
 using RepositoryContracts;
 using ServiceContracts;
 
@@ -51,29 +52,28 @@ public class PostService : IPostService
         Post existing = await postRepository.GetSingleAsync(id);
         Ownership.Ensure(existing.UserId, caller, "post");
 
-        Post updated = new()
-        {
-            Id = existing.Id,
-            Title = request.Title.Trim(),
-            Body = request.Body.Trim(),
-            UserId = existing.UserId,
-            SubForumId = request.SubForumId,
-            CreatedAt = existing.CreatedAt
-        };
+        await EnsureSubForumExistsAsync(request.SubForumId);
 
-        await postRepository.UpdateAsync(updated);
-        return ToDto(updated, FindUserName(updated.UserId), CountCommentsFor(updated.Id));
+        existing.Title = request.Title.Trim();
+        existing.Body = request.Body.Trim();
+        existing.SubForumId = request.SubForumId;
+
+        await postRepository.UpdateAsync(existing);
+
+        return ToDto(existing,
+            await FindUserNameAsync(existing.UserId),
+            await CountCommentsForAsync(existing.Id));
     }
-    
+
     public async Task DeleteAsync(int id, Caller caller)
     {
         Post existing = await postRepository.GetSingleAsync(id);
         Ownership.Ensure(existing.UserId, caller, "post");
-        
-        List<int> commentIds = commentRepository.GetMany()
+
+        List<int> commentIds = await commentRepository.GetMany()
             .Where(comment => comment.PostId == id)
             .Select(comment => comment.Id)
-            .ToList();
+            .ToListAsync();
 
         foreach (int commentId in commentIds)
         {
@@ -85,10 +85,10 @@ public class PostService : IPostService
     public async Task<PostDto> GetSingleAsync(int id)
     {
         Post post = await postRepository.GetSingleAsync(id);
-        return ToDto(post, FindUserName(post.UserId), CountCommentsFor(post.Id));
+        return ToDto(post, await FindUserNameAsync(post.UserId), await CountCommentsForAsync(post.Id));
     }
 
-    public IEnumerable<PostDto> GetMany(
+    public async Task<IEnumerable<PostDto>> GetManyAsync(
         string? titleContains = null,
         int? userId = null,
         string? userNameContains = null,
@@ -115,23 +115,26 @@ public class PostService : IPostService
         if (!string.IsNullOrWhiteSpace(userNameContains))
         {
             string filter = userNameContains.Trim().ToLower();
-            List<int> matchingUserIds = userRepository.GetMany()
+
+            List<int> matchingUserIds = await userRepository.GetMany()
                 .Where(user => user.UserName.ToLower().Contains(filter))
                 .Select(user => user.Id)
-                .ToList();
+                .ToListAsync();
 
             posts = posts.Where(post => matchingUserIds.Contains(post.UserId));
         }
 
-        Dictionary<int, string> userNames = userRepository.GetMany()
-            .ToDictionary(user => user.Id, user => user.UserName);
+        Dictionary<int, string> userNames = await userRepository.GetMany()
+            .ToDictionaryAsync(user => user.Id, user => user.UserName);
 
-        Dictionary<int, int> commentCounts = commentRepository.GetMany()
+        Dictionary<int, int> commentCounts = await commentRepository.GetMany()
             .GroupBy(comment => comment.PostId)
-            .ToDictionary(group => group.Key, group => group.Count());
+            .Select(group => new { PostId = group.Key, Count = group.Count() })
+            .ToDictionaryAsync(group => group.PostId, group => group.Count);
 
-        return posts
-            .Select(post => ToDto(
+        List<Post> loadedPosts = await posts.ToListAsync();
+
+        return loadedPosts.Select(post => ToDto(
                 post,
                 userNames.GetValueOrDefault(post.UserId, DeletedUser.UserName),
                 commentCounts.GetValueOrDefault(post.Id)))
@@ -175,14 +178,14 @@ public class PostService : IPostService
         }
     }
 
-    private string FindUserName(int userId)
+    private async Task<string> FindUserNameAsync(int userId)
     {
-        User? user = userRepository.GetMany().FirstOrDefault(candidate => candidate.Id == userId);
+        User? user = await userRepository.GetMany().FirstOrDefaultAsync(candidate => candidate.Id == userId);
         return user?.UserName ?? DeletedUser.UserName;
     }
 
-    private int CountCommentsFor(int postId) =>
-        commentRepository.GetMany().Count(comment => comment.PostId == postId);
+    private Task<int> CountCommentsForAsync(int postId) =>
+        commentRepository.GetMany().CountAsync(comment => comment.PostId == postId);
 
     private static PostDto ToDto(Post post, string authorUserName, int commentCount) =>
         new(post.Id, post.Title, post.Body, post.UserId, authorUserName, post.SubForumId,

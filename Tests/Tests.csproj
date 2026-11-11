@@ -28,6 +28,7 @@
     <ProjectReference Include="..\ApiContracts\ApiContracts.csproj" />
     <ProjectReference Include="..\Server\RepositoryContracts\RepositoryContracts.csproj" />
     <ProjectReference Include="..\Server\Entities\Entities.csproj" />
+    <ProjectReference Include="..\Server\EfcRepositories\EfcRepositories.csproj" />
   </ItemGroup>
 
 </Project>
