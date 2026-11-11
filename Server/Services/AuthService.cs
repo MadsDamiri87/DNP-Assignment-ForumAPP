@@ -19,7 +19,8 @@ public class AuthService : IAuthService
     {
         User? user = await userRepository.GetMany()
             .FirstOrDefaultAsync(candidate =>
-                candidate.UserName.ToLower() == request.UserName.Trim().ToLower());
+                !candidate.IsDeleted
+                && candidate.UserName.ToLower() == request.UserName.Trim().ToLower());
 
         if (user == null || user.Password != request.Password)
         {

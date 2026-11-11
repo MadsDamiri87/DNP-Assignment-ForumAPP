@@ -90,7 +90,7 @@ public class CommentService : ICommentService
             string filter = userNameContains.Trim().ToLower();
 
             List<int> matchingUserIds = await userRepository.GetMany()
-                .Where(user => user.UserName.ToLower().Contains(filter))
+                .Where(user => !user.IsDeleted && user.UserName.ToLower().Contains(filter))
                 .Select(user => user.Id)
                 .ToListAsync();
 
@@ -98,6 +98,7 @@ public class CommentService : ICommentService
         }
 
         Dictionary<int, string> userNames = await userRepository.GetMany()
+            .Where(user => !user.IsDeleted)
             .ToDictionaryAsync(user => user.Id, user => user.UserName);
 
         List<Comment> loadComments = await comments.ToListAsync();
@@ -130,19 +131,16 @@ public class CommentService : ICommentService
 
     private async Task<User> GetExistingUserAsync(int userId)
     {
-        try
-        {
-            return await userRepository.GetSingleAsync(userId);
-        }
-        catch (InvalidOperationException)
-        {
-            throw new ArgumentException($"User with id '{userId}' doesn't exist.");
-        }
+        User? user = await userRepository.GetMany()
+            .FirstOrDefaultAsync(candidate => candidate.Id == userId && !candidate.IsDeleted);
+
+        return user ?? throw new ArgumentException($"User with id '{userId}' doesn't exist.");
     }
 
     private async Task<string> FindUserNameAsync(int userId)
     {
-        User? user = await userRepository.GetMany().FirstOrDefaultAsync(candidate => candidate.Id == userId);
+        User? user = await userRepository.GetMany()
+            .FirstOrDefaultAsync(candidate => candidate.Id == userId && !candidate.IsDeleted);
         return user?.UserName ?? DeletedUser.UserName;
     }
 

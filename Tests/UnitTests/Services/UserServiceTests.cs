@@ -272,13 +272,60 @@ public class UserServiceTests
     }
 
     [Fact]
-    public async Task ShouldDeleteTheUser_WhenUserExists()
+    public async Task ShouldMarkTheUserDeleted_WhenUserExists()
     {
         // Act
         await service.DeleteAsync(1, Owner);
 
         // Assert
-        Assert.Empty(users.Items);
+        Assert.True(Assert.Single(users.Items).IsDeleted);
+    }
+
+    [Fact]
+    public async Task ShouldHideTheUser_WhenTheAccountIsDeleted()
+    {
+        await service.DeleteAsync(1, Owner);
+
+        Assert.Empty(await service.GetManyAsync());
+        Assert.Empty(await service.GetManyAsync(TakenUserName));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.GetSingleAsync(1));
+    }
+
+    [Fact]
+    public async Task ShouldRejectChanges_WhenTheAccountIsDeleted()
+    {
+        await service.DeleteAsync(1, Owner);
+        UpdateUserDto request = new() { UserName = ValidUserName, Password = ValidPassword, Email = ValidEmail };
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.UpdateAsync(1, request, Owner));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.DeleteAsync(1, Owner));
+        Assert.True(Assert.Single(users.Items).IsDeleted);
+    }
+
+    [Fact]
+    public async Task ShouldKeepTheUserActive_WhenAnotherUserTriesToDeleteIt()
+    {
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(
+            () => service.DeleteAsync(1, new Caller(2, false)));
+
+        Assert.False(Assert.Single(users.Items).IsDeleted);
+    }
+
+    [Fact]
+    public async Task ShouldMarkTheUserDeleted_WhenAnAdminDeletesAnotherAccount()
+    {
+        await service.DeleteAsync(1, new Caller(2, true));
+
+        Assert.True(Assert.Single(users.Items).IsDeleted);
+    }
+
+    [Fact]
+    public async Task ShouldReserveTheUserNameAndEmail_WhenTheAccountIsDeleted()
+    {
+        await service.DeleteAsync(1, Owner);
+
+        await Assert.ThrowsAsync<ArgumentException>(() => service.CreateAsync(NewRequest(userName: TakenUserName)));
+        await Assert.ThrowsAsync<ArgumentException>(() => service.CreateAsync(NewRequest(email: TakenEmail)));
     }
 
     [Fact]

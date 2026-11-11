@@ -33,7 +33,7 @@ public class SubForumsController : ControllerBase
         try
         {
             SubForumDto created = await subForumService.CreateAsync(request, userId.Value);
-            return Created($"/{created.Id}", created);
+            return Created($"/subforums/{created.Id}", created);
         }
         catch (ArgumentException e)
         {

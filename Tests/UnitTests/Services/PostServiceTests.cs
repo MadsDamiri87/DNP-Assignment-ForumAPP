@@ -113,7 +113,7 @@ public class PostServiceTests
         Assert.Equal("mads", post.AuthorUserName);
     }
 
-    // Ejerskab: kun forfatteren eller en admin må ændre en post.
+    // Forfatteren og admin må redigere og slette; subforummets ejer må også slette.
     // Post 5 er skrevet af bruger 7, så postens id og forfatterens id er forskellige.
     // Det afslører et tjek, der ved en fejl sammenligner postens eget id med brugerens.
     [Fact]
@@ -154,6 +154,48 @@ public class PostServiceTests
 
         // Assert
         Assert.DoesNotContain(posts.Items, post => post.Id == 5);
+    }
+
+    [Fact]
+    public async Task ShouldDeleteThePostAndComments_WhenTheSubForumCreatorDeletesIt()
+    {
+        posts.Items.Single(post => post.Id == 1).SubForumId = 4;
+        subForums.Seed(new SubForum { Id = 4, Name = "DNP", Description = "Description", CreatorUserId = 7 });
+
+        await service.DeleteAsync(1, new Caller(7, false));
+
+        Assert.DoesNotContain(posts.Items, post => post.Id == 1);
+        Assert.DoesNotContain(comments.Items, comment => comment.PostId == 1);
+        Assert.Contains(posts.Items, post => post.Id == 2);
+        Assert.Contains(comments.Items, comment => comment.PostId == 2);
+    }
+
+    [Fact]
+    public async Task ShouldKeepThePostAndComments_WhenTheCallerOwnsAnotherSubForum()
+    {
+        posts.Items.Single(post => post.Id == 1).SubForumId = 4;
+        subForums.Seed(
+            new SubForum { Id = 4, Name = "DNP", Description = "Description", CreatorUserId = 3 },
+            new SubForum { Id = 5, Name = "Other", Description = "Description", CreatorUserId = 7 });
+
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(
+            () => service.DeleteAsync(1, new Caller(7, false)));
+
+        Assert.Contains(posts.Items, post => post.Id == 1);
+        Assert.Equal(3, comments.Items.Count);
+    }
+
+    [Fact]
+    public async Task ShouldThrowUnauthorized_WhenTheSubForumCreatorUpdatesAnotherUsersPost()
+    {
+        posts.Items.Single(post => post.Id == 1).SubForumId = 4;
+        subForums.Seed(new SubForum { Id = 4, Name = "DNP", Description = "Description", CreatorUserId = 7 });
+        UpdatePostDto request = new() { Title = "Changed", Body = "Body", SubForumId = 4 };
+
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(
+            () => service.UpdateAsync(1, request, new Caller(7, false)));
+
+        Assert.Equal("Title", posts.Items.Single(post => post.Id == 1).Title);
     }
 
     [Fact]

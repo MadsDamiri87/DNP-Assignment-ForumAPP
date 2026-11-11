@@ -1,6 +1,8 @@
 @page "/posts/{Id:int}"
+@using System.Security.Claims
 @inject IPostApiService PostApiService
 @inject ICommentApiService CommentApiService
+@inject ISubForumApiService SubForumApiService
 @inject NavigationManager NavigationManager
 
 <PageTitle>@(post?.Title ?? "Post")</PageTitle>
@@ -75,13 +77,17 @@ else
 
     <AuthorizeView>
         <Authorized>
-            <button class="btn btn-outline-danger" @onclick="DeletePostAsync">Delete post</button>
+            @if (CanDelete(context.User))
+            {
+                <button class="btn btn-outline-danger" @onclick="DeletePostAsync">Delete post</button>
+            }
         </Authorized>
     </AuthorizeView>
 }
 
 @code {
     private PostDto? post;
+    private SubForumDto? subForum;
     private List<CommentDto> comments = [];
 
     private string newCommentBody = string.Empty;
@@ -97,11 +103,17 @@ else
     private async Task LoadAsync()
     {
         loadError = null;
+        subForum = null;
 
         try
         {
             post = await PostApiService.GetSingleAsync(Id);
             comments = await CommentApiService.GetCommentsAsync(postId: Id);
+
+            if (post.SubForumId.HasValue)
+            {
+                subForum = await SubForumApiService.GetSingleAsync(post.SubForumId.Value);
+            }
         }
         catch (Exception e)
         {
@@ -134,6 +146,16 @@ else
         {
             isSaving = false;
         }
+    }
+
+    private bool CanDelete(ClaimsPrincipal user)
+    {
+        if (!int.TryParse(user.FindFirst("Id")?.Value, out int userId))
+        {
+            return false;
+        }
+
+        return user.IsInRole("Admin") || post?.UserId == userId || subForum?.CreatorUserId == userId;
     }
 
     private async Task DeletePostAsync()

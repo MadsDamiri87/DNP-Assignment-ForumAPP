@@ -1,6 +1,7 @@
 @page "/users/create"
 @inject IUserApiService UserApiService
 @inject NavigationManager NavigationManager
+@inject IAuthApiService AuthApiService
 
 <PageTitle>New user</PageTitle>
 
@@ -52,7 +53,8 @@
             };
 
             await UserApiService.AddAsync(request);
-            NavigationManager.NavigateTo("users");
+            await AuthApiService.LoginAsync(userName, password);
+            NavigationManager.NavigateTo("");
         }
         catch (Exception e)
         {

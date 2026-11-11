@@ -37,7 +37,7 @@ public class UserService : IUserService
     {
         ValidateFields(request.UserName, request.Password, request.Email);
 
-        User existing = await userRepository.GetSingleAsync(id);
+        User existing = await GetExistingUserAsync(id);
         Ownership.Ensure(existing.Id, caller, "account");
 
         await EnsureUserNameIsAvailableAsync(request.UserName, id);
@@ -54,21 +54,22 @@ public class UserService : IUserService
 
     public async Task DeleteAsync(int id, Caller caller)
     {
-        User existing = await userRepository.GetSingleAsync(id);
+        User existing = await GetExistingUserAsync(id);
         Ownership.Ensure(existing.Id, caller, "account");
 
-        await userRepository.DeleteAsync(id);
+        existing.IsDeleted = true;
+        await userRepository.UpdateAsync(existing);
     }
 
     public async Task<UserDto> GetSingleAsync(int id)
     {
-        User user = await userRepository.GetSingleAsync(id);
+        User user = await GetExistingUserAsync(id);
         return ToDto(user);
     }
 
     public async Task<IEnumerable<UserDto>> GetManyAsync(string? userNameContains = null)
     {
-        IQueryable<User> users = userRepository.GetMany();
+        IQueryable<User> users = userRepository.GetMany().Where(user => !user.IsDeleted);
 
         if (!string.IsNullOrWhiteSpace(userNameContains))
         {
@@ -80,6 +81,18 @@ public class UserService : IUserService
         List<User> loadUsers = await users.ToListAsync();
 
         return loadUsers.Select(ToDto).ToList();
+    }
+
+    private async Task<User> GetExistingUserAsync(int id)
+    {
+        User user = await userRepository.GetSingleAsync(id);
+
+        if (user.IsDeleted)
+        {
+            throw new InvalidOperationException($"User with id '{id}' doesn't exist.");
+        }
+
+        return user;
     }
 
     private static void ValidateFields(string userName, string password, string email)

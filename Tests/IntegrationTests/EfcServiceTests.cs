@@ -130,6 +130,99 @@ public class EfcServiceTests : IAsyncLifetime
         Assert.Empty(await context.Comments.ToListAsync());
     }
 
+    [Theory]
+    [InlineData(2, false, true)]
+    [InlineData(3, true, true)]
+    [InlineData(1, false, true)]
+    [InlineData(3, false, false)]
+    public async Task ShouldCheckDeletePermission_WhenThePostBelongsToASubForum(int userId, bool isAdmin, bool allowed)
+    {
+        await context.Users.AddAsync(new User { UserName = "other", Password = "secret", Email = "other@example.test" });
+        await context.SaveChangesAsync();
+        Post post = await context.Posts.SingleAsync(candidate => candidate.Id == 1);
+        post.UserId = 2;
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        if (allowed)
+        {
+            await posts.DeleteAsync(1, new Caller(userId, isAdmin));
+
+            Assert.False(await context.Posts.AnyAsync(candidate => candidate.Id == 1));
+            Assert.Empty(await context.Comments.ToListAsync());
+        }
+        else
+        {
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(
+                () => posts.DeleteAsync(1, new Caller(userId, isAdmin)));
+
+            Assert.True(await context.Posts.AnyAsync(candidate => candidate.Id == 1));
+            Assert.Single(await context.Comments.ToListAsync());
+        }
+    }
+
+    [Fact]
+    public async Task ShouldKeepAllContent_WhenTheSubForumCreatorDeletesTheirAccount()
+    {
+        User other = new() { UserName = "other", Password = "secret", Email = "other@example.test" };
+        await context.Users.AddAsync(other);
+        await context.SaveChangesAsync();
+        await context.Posts.AddAsync(new Post
+        {
+            Title = "Other users post", Body = "Body", UserId = other.Id, SubForumId = 1,
+            CreatedAt = DateTime.UtcNow
+        });
+        await context.Comments.AddAsync(new Comment { Body = "Other users comment", UserId = other.Id, PostId = 1 });
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        await users.DeleteAsync(1, new Caller(1, false));
+        context.ChangeTracker.Clear();
+
+        Assert.True((await context.Users.SingleAsync(user => user.Id == 1)).IsDeleted);
+        Assert.Equal(2, await context.Users.CountAsync());
+        Assert.Equal(3, await context.Posts.CountAsync());
+        Assert.Equal(2, await context.Comments.CountAsync());
+        Assert.Single(await context.SubForums.ToListAsync());
+        Assert.Equal(1, (await context.Posts.SingleAsync(post => post.UserId == other.Id)).SubForumId);
+
+        Assert.Single(await users.GetManyAsync());
+        await Assert.ThrowsAsync<InvalidOperationException>(() => users.GetSingleAsync(1));
+        Assert.Null(await auth.ValidateUserAsync(new AuthDto { UserName = "mads", Password = " secret " }));
+        Assert.NotNull(await auth.ValidateUserAsync(new AuthDto { UserName = "other", Password = "secret" }));
+
+        Assert.Equal(DeletedUser.UserName, (await posts.GetSingleAsync(1)).AuthorUserName);
+        Assert.Equal(DeletedUser.UserName, (await comments.GetSingleAsync(1)).AuthorUserName);
+        Assert.Equal(DeletedUser.UserName, (await forums.GetSingleAsync(1)).CreatorUserName);
+        Assert.All((await posts.GetManyAsync(userId: 1)), post => Assert.Equal(DeletedUser.UserName, post.AuthorUserName));
+        Assert.Equal(DeletedUser.UserName, (await comments.GetManyAsync(userId: 1)).Single().AuthorUserName);
+        Assert.Equal(DeletedUser.UserName, (await forums.GetManyAsync()).Single().CreatorUserName);
+        Assert.Empty(await posts.GetManyAsync(userNameContains: "mads"));
+        Assert.Empty(await comments.GetManyAsync(userNameContains: "mads"));
+        Assert.Equal("other", (await posts.GetManyAsync(userId: other.Id)).Single().AuthorUserName);
+    }
+
+    [Theory]
+    [InlineData("post")]
+    [InlineData("comment")]
+    [InlineData("forum")]
+    public async Task ShouldRejectNewContent_WhenTheAuthorIsDeleted(string entity)
+    {
+        await users.DeleteAsync(1, new Caller(1, false));
+
+        Task create = entity switch
+        {
+            "post" => posts.CreateAsync(new CreatePostDto { Title = "Title", Body = "Body" }, 1),
+            "comment" => comments.CreateAsync(new CreateCommentDto { Body = "Body", PostId = 1 }, 1),
+            _ => forums.CreateAsync(new CreateSubForumDto { Name = "Other", Description = "Description" }, 1)
+        };
+
+        await Assert.ThrowsAsync<ArgumentException>(() => create);
+        Assert.Equal(2, await context.Posts.CountAsync());
+        Assert.Single(await context.Comments.ToListAsync());
+        Assert.Single(await context.SubForums.ToListAsync());
+    }
+
     public async Task DisposeAsync()
     {
         await context.DisposeAsync();

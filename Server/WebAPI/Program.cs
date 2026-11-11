@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using RepositoryContracts;
 using ServiceContracts;
 using Services;
+using WebAPI.Auth;
 using AppContext = EfcRepositories.AppContext;
 
 
@@ -30,6 +31,7 @@ builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<ISubForumService, SubForumService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<UserTokenEvents>();
 builder.Services.AddAuthentication();
 AuthorizationPolicies.AddPolicies(builder.Services);
 
@@ -39,6 +41,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.MapInboundClaims = false;
+        options.EventsType = typeof(UserTokenEvents);
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,

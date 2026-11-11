@@ -1,7 +1,6 @@
 @page "/posts"
 @inject IPostApiService PostApiService
 @inject ISubForumApiService SubForumApiService
-@inject IUserApiService UserApiService
 
 <PageTitle>Posts</PageTitle>
 
@@ -128,8 +127,8 @@ else
 
         if (UserId.HasValue)
         {
-            UserDto user = await UserApiService.GetSingleAsync(UserId.Value);
-            return $"Posts by {user.UserName}";
+            string? author = posts?.FirstOrDefault()?.AuthorUserName;
+            return author is null ? "Posts by user" : $"Posts by {author}";
         }
 
         return "Posts";

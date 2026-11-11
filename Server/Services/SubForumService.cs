@@ -48,6 +48,8 @@ public class SubForumService : ISubForumService
         SubForum existing = await subForumRepository.GetSingleAsync(id);
         Ownership.Ensure(existing.CreatorUserId, caller, "sub-forum");
 
+        await EnsureNameIsAvailableAsync(request.Name, id);
+
         existing.Name = request.Name.Trim();
         existing.Description = request.Description.Trim();
 
@@ -95,6 +97,7 @@ public class SubForumService : ISubForumService
         }
 
         Dictionary<int, string> userNames = await userRepository.GetMany()
+            .Where(user => !user.IsDeleted)
             .ToDictionaryAsync(user => user.Id, user => user.UserName);
 
         List<SubForum> loadedSubForums = await subForums.ToListAsync();
@@ -128,19 +131,16 @@ public class SubForumService : ISubForumService
 
     private async Task<User> GetExistingUserAsync(int userId)
     {
-        try
-        {
-            return await userRepository.GetSingleAsync(userId);
-        }
-        catch (InvalidOperationException)
-        {
-            throw new ArgumentException($"User with id: '{userId}' doesn't exist.");
-        }
+        User? user = await userRepository.GetMany()
+            .FirstOrDefaultAsync(candidate => candidate.Id == userId && !candidate.IsDeleted);
+
+        return user ?? throw new ArgumentException($"User with id: '{userId}' doesn't exist.");
     }
 
     private async Task<string> FindUserNameAsync(int userId)
     {
-        User? user = await userRepository.GetMany().FirstOrDefaultAsync(candidate => candidate.Id == userId);
+        User? user = await userRepository.GetMany()
+            .FirstOrDefaultAsync(candidate => candidate.Id == userId && !candidate.IsDeleted);
         return user?.UserName ?? DeletedUser.UserName;
     }
 

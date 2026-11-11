@@ -68,7 +68,7 @@ public class PostService : IPostService
     public async Task DeleteAsync(int id, Caller caller)
     {
         Post existing = await postRepository.GetSingleAsync(id);
-        Ownership.Ensure(existing.UserId, caller, "post");
+        await EnsureCanDeleteAsync(existing, caller);
 
         List<int> commentIds = await commentRepository.GetMany()
             .Where(comment => comment.PostId == id)
@@ -117,7 +117,7 @@ public class PostService : IPostService
             string filter = userNameContains.Trim().ToLower();
 
             List<int> matchingUserIds = await userRepository.GetMany()
-                .Where(user => user.UserName.ToLower().Contains(filter))
+                .Where(user => !user.IsDeleted && user.UserName.ToLower().Contains(filter))
                 .Select(user => user.Id)
                 .ToListAsync();
 
@@ -125,6 +125,7 @@ public class PostService : IPostService
         }
 
         Dictionary<int, string> userNames = await userRepository.GetMany()
+            .Where(user => !user.IsDeleted)
             .ToDictionaryAsync(user => user.Id, user => user.UserName);
 
         Dictionary<int, int> commentCounts = await commentRepository.GetMany()
@@ -141,6 +142,28 @@ public class PostService : IPostService
             .ToList();
     }
 
+    private async Task EnsureCanDeleteAsync(Post post, Caller caller)
+    {
+        if (caller.IsAdmin || post.UserId == caller.UserId)
+        {
+            return;
+        }
+
+        if (post.SubForumId.HasValue)
+        {
+            bool ownsSubForum = await subForumRepository.GetMany()
+                .AnyAsync(subForum => subForum.Id == post.SubForumId.Value
+                                     && subForum.CreatorUserId == caller.UserId);
+
+            if (ownsSubForum)
+            {
+                return;
+            }
+        }
+
+        Ownership.Ensure(post.UserId, caller, "post");
+    }
+
     private static void ValidateFields(string title, string body)
     {
         if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(body))
@@ -151,14 +174,10 @@ public class PostService : IPostService
 
     private async Task<User> GetExistingUserAsync(int userId)
     {
-        try
-        {
-            return await userRepository.GetSingleAsync(userId);
-        }
-        catch (InvalidOperationException)
-        {
-            throw new ArgumentException($"User with id '{userId}' doesn't exist.");
-        }
+        User? user = await userRepository.GetMany()
+            .FirstOrDefaultAsync(candidate => candidate.Id == userId && !candidate.IsDeleted);
+
+        return user ?? throw new ArgumentException($"User with id '{userId}' doesn't exist.");
     }
 
     private async Task EnsureSubForumExistsAsync(int? subForumId)
@@ -180,7 +199,8 @@ public class PostService : IPostService
 
     private async Task<string> FindUserNameAsync(int userId)
     {
-        User? user = await userRepository.GetMany().FirstOrDefaultAsync(candidate => candidate.Id == userId);
+        User? user = await userRepository.GetMany()
+            .FirstOrDefaultAsync(candidate => candidate.Id == userId && !candidate.IsDeleted);
         return user?.UserName ?? DeletedUser.UserName;
     }
 
