@@ -7,3 +7,11 @@ riderModule.iml
 /Server/WebAPI/Data/
 FRONTEND-NOTES.md
 TODO.md
+
+# SQLite
+*.db
+*.db-shm
+*.db-wal
+
+# Rider per-user settings
+*.DotSettings.user
