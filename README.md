@@ -32,7 +32,7 @@ Herunder vises den færdige GUI og under dén findes yderligere informationer om
 
 <br>
 
-Åbn de afsnit, du vil arbejde med. Al dokumentation er samlet her.
+Åbn de afsnit, du vil arbejde med. Dokumentation er samlet her.
 
 <details>
 <summary><strong>Funktioner og formål</strong></summary>
