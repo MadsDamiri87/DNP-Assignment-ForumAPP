@@ -7,6 +7,7 @@ using RepositoryContracts;
 using ServiceContracts;
 using Services;
 using WebAPI.Auth;
+using WebAPI.Seeding;
 using AppContext = EfcRepositories.AppContext;
 
 
@@ -60,6 +61,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
+// Demodata til eksamen. Kører kun hvis der ingen posts er.
+using (IServiceScope scope = app.Services.CreateScope())
+{
+    DemoDataSeeder seeder = new DemoDataSeeder(
+        scope.ServiceProvider.GetRequiredService<IUserRepository>(),
+        scope.ServiceProvider.GetRequiredService<ISubForumRepository>(),
+        scope.ServiceProvider.GetRequiredService<IPostRepository>(),
+        scope.ServiceProvider.GetRequiredService<ICommentRepository>());
+
+    await seeder.SeedIfEmptyAsync();
+}
 
 
 
