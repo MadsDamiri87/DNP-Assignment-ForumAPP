@@ -14,8 +14,9 @@ IPostRepository postRepository = new PostFileRepository();
 CreatePostView createPostView = new CreatePostView(postRepository, userRepository);
 ListPostView listPostView = new ListPostView(postRepository);
 SinglePostView singlePostView = new SinglePostView(postRepository, commentRepository);
+AddCommentView addCommentView = new AddCommentView(commentRepository, postRepository, userRepository);
 
-ManagePostView managePostView = new ManagePostView(createPostView, listPostView, singlePostView);
+ManagePostView managePostView = new ManagePostView(createPostView, listPostView, singlePostView, addCommentView);
 
 ListUsersView listUsersView = new ListUsersView(userRepository);
 CreateUserView createUserView = new CreateUserView(userRepository);

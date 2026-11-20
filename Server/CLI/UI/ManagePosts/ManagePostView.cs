@@ -7,12 +7,14 @@ public class ManagePostView
     private CreatePostView createPostView;
     private ListPostView listPostView;
     private SinglePostView singlePostView;
+    private AddCommentView addCommentView;
 
-    public ManagePostView(CreatePostView createPostView,  ListPostView listPostView, SinglePostView singlePostView)
+    public ManagePostView(CreatePostView createPostView,  ListPostView listPostView, SinglePostView singlePostView, AddCommentView addCommentView)
     {
         this.createPostView = createPostView;
         this.listPostView = listPostView;
         this.singlePostView = singlePostView;
+        this.addCommentView = addCommentView;
     }
 
     public async Task StartAsync()
@@ -26,7 +28,8 @@ public class ManagePostView
             Console.WriteLine("1. Create Post");
             Console.WriteLine("2. List Post");
             Console.WriteLine("3. View Post");
-            Console.WriteLine("4. Back");
+            Console.WriteLine("4. Add Comment");
+            Console.WriteLine("5. Back");
             Console.Write("Choose an option: ");
 
             string? input = Console.ReadLine();
@@ -54,6 +57,11 @@ public class ManagePostView
             }
             
             else if (choice == "4")
+            {
+                await addCommentView.AddCommentAsync();
+            }
+
+            else if (choice == "5")
             {
                 running = false;
             }

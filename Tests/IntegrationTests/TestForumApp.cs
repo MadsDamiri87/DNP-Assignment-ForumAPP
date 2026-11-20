@@ -23,7 +23,8 @@ public sealed class TestForumApp
         var createPostView = new CreatePostView(Posts, Users);
         var listPostView = new ListPostView(Posts);
         var singlePostView = new SinglePostView(Posts, Comments);
-        var managePostView = new ManagePostView(createPostView, listPostView, singlePostView);
+        var addCommentView = new AddCommentView(Comments, Posts, Users);
+        var managePostView = new ManagePostView(createPostView, listPostView, singlePostView, addCommentView);
 
         var listUsersView = new ListUsersView(Users);
         var createUserView = new CreateUserView(Users);

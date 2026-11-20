@@ -100,22 +100,22 @@ public class CliAppTests
         }
     }
 
-    // Postmenu - gyldige valg er 1..4:
+    // Postmenu - gyldige valg er 1..5:
     //   Partition (EP)   | Repræsentant   | BVA-værdi  | Forventet
-    //   ugyldigt valg    | "x"            | "0", "5"   | "Invalid choice"
-    //   4 = Back         |                | "4"        | tilbage til hovedmenuen
+    //   ugyldigt valg    | "x"            | "0", "6"   | "Invalid choice"
+    //   5 = Back         |                | "5"        | tilbage til hovedmenuen
     [Collection(ConsoleCollection.Name)]
     public class PostsMenu
     {
         [Theory]
         [InlineData("0")] // BVA: lige under laveste valg
-        [InlineData("5")] // BVA: lige over højeste valg
+        [InlineData("6")] // BVA: lige over højeste valg
         [InlineData("x")] // EP: ikke et tal
-        public async Task ShouldSayTheChoiceIsInvalid_WhenChoiceIsOutsideOneToFour(string choice)
+        public async Task ShouldSayTheChoiceIsInvalid_WhenChoiceIsOutsideOneToFive(string choice)
         {
             // Arrange
             TestForumApp forum = await TestForumApp.CreateSeededAsync();
-            using var console = new ConsoleSession("2", choice, "4", "3");
+            using var console = new ConsoleSession("2", choice, "5", "3");
             // Linjen slutter lige efter "Invalid choice" - hovedmenuens besked fortsætter med ". Try again."
             string expectedMessage = "Invalid choice" + Environment.NewLine;
 
@@ -127,11 +127,11 @@ public class CliAppTests
         }
 
         [Fact]
-        public async Task ShouldReturnToTheMainMenu_WhenChoiceIsFour()
+        public async Task ShouldReturnToTheMainMenu_WhenChoiceIsFive()
         {
             // Arrange - BVA: højeste gyldige valg. "3" afslutter kun, hvis vi er tilbage i hovedmenuen.
             TestForumApp forum = await TestForumApp.CreateSeededAsync();
-            using var console = new ConsoleSession("2", "4", "3");
+            using var console = new ConsoleSession("2", "5", "3");
             string expectedMessage = "You have chosen to exit.";
 
             // Act
@@ -227,11 +227,27 @@ public class CliAppTests
         }
 
         [Fact]
+        public async Task ShouldShowTheNewComment_WhenCommentIsAddedAndThePostIsViewed()
+        {
+            // Arrange - "4" tilføjer kommentar til post 1 som bruger 1, "3" viser posten igen.
+            TestForumApp forum = await TestForumApp.CreateSeededAsync();
+            using var console = new ConsoleSession(
+                "2", "4", "1", "1", "Skrevet fra CLI", "3", "1", "5", "3");
+            string expectedEntry = "- Skrevet fra CLI";
+
+            // Act
+            await RunAsync(forum);
+
+            // Assert
+            Assert.Contains(expectedEntry, console.Output);
+        }
+
+        [Fact]
         public async Task ShouldKeepRunning_WhenUnknownPostIsViewed()
         {
             // Arrange - appen plejede at crashe her; at vi når til "exit" viser, at den overlever
             TestForumApp forum = await TestForumApp.CreateSeededAsync();
-            using var console = new ConsoleSession("2", "3", "99", "4", "3");
+            using var console = new ConsoleSession("2", "3", "99", "5", "3");
             string expectedMessage = "You have chosen to exit.";
 
             // Act
