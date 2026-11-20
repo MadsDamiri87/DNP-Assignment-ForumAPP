@@ -14,7 +14,19 @@ Applikationen er bygget op over flere assignments: domænemodel og repositories,
 <details>
 <summary><strong>Kom i gang</strong></summary>
 
-Kræver .NET 10 SDK. Web API'en skal køre først, derefter Blazor-appen:
+Kræver .NET 10 SDK og `dotnet tool install -g dotnet-ef`.
+
+Databasen ligger ikke i repoet, så den skal oprettes af migrationerne første gang.
+Kommandoen skal køres fra `Server/EfcRepositories`, fordi connection stringen er
+relativ til den mappe:
+
+```
+cd Server/EfcRepositories
+dotnet ef database update
+cd ../..
+```
+
+Derefter skal Web API'en køre først, og så Blazor-appen:
 
 ```
 dotnet run --project Server/WebAPI --launch-profile http
@@ -38,7 +50,9 @@ Adressen på API'et står i Blazor-appens `appsettings.json` under `WebApiBaseAd
 
 Formålet med denne assignment er at give den studerende (mig) et modulært .NET-projekt, samt får en forståelse af C# og forskellighederne mellem dét og Java. Derudover er hensigten også at vi får erfaringer med andre sprog og måder hvorpå de kan interagere med hinanden.
 
-Strukturen gør det muligt at udskifte persistence-laget (in-memory, filer, senere Entity Framework Core med SQLite) uden at resten af applikationen behøver kende detaljerne. Det samme gælder mellem lagene i Web API'en: controllere kender kun service-interfaces, og services kender kun repository-interfaces. Dette støtter op om sidste semesters læring omkring dele af SOLID principperne.
+Strukturen gør det muligt at udskifte persistence-laget (in-memory, filer, Entity Framework Core med SQLite) uden at controllere og klienter behøver kende detaljerne. Controllere kender kun service-interfaces, og services kender kun repository-interfaces. Dette støtter op om sidste semesters læring omkring dele af SOLID principperne.
+
+Assignment 7 sætter dog en grænse for udskifteligheden: services kalder `ToListAsync` og `AnyAsync` direkte på den `IQueryable`, repositoryet returnerer. Det er Entity Framework Cores egne metoder, så de virker kun med EFC-repositories. Et skift tilbage til fil- eller in-memory-repositories ville kræve, at de asynkrone kald flyttes bag repository-kontrakten.
 
 </details>
 
@@ -58,7 +72,7 @@ Hver relation består af en foreign key og en navigation property:
 - En `Comment` har `PostId` + `Post` og `UserId` + `User`.
 - En `SubForum` har `CreatorUserId` + `CreatorUser`.
 
-Modsat vej har `User` samlingerne `CreatedPosts`, `CreatedComments` og `CreatedSubForums`, `SubForum` har `Posts`, og `Post` har `Comments`.
+Modsat vej har `User` samlingerne `CreatedPosts`, `CreatedComments` og `CreatedSubForums`, `SubForum` har `CreatedPosts`, og `Post` har `CreatedComments`.
 
 Foreign keyen er den, der gemmes som kolonne i databasen. Navigation propertyen findes kun i hukommelsen og udfyldes, når man beder om den med `Include`.
 
@@ -171,6 +185,8 @@ Endpoints markeret med `[Authorize]` kræver headeren `Authorization: Bearer <to
 ### Ejerskab
 En bruger må kun ændre og slette sit eget indhold. Tjekket ligger i service-laget: entiteten hentes, og dens forfatter sammenlignes med `Id`-claimet fra tokenet. Passer de ikke, svarer API'et 403.
 
+To undtagelser: en admin slipper forbi tjekket, og den der har oprettet et subforum kan slette alle posts i det, også andres. Det sidste er moderation af eget subforum.
+
 Brugere har et `Role`-felt, som sendes med som claim. En bruger med rollen `Admin` slipper forbi ejerskabstjekket og kan ændre alt. Nye brugere får rollen `User`, og rollen kan ikke sættes af klienten.
 
 `[Authorize]` svarer på *hvem du er*; ejerskabstjekket svarer på *om indholdet er dit*. Policyen `MustBeAdmin` i `ApiContracts/Auth/AuthorizationPolicies.cs` deles mellem Web API'en og Blazor-frontenden.
@@ -267,7 +283,7 @@ Implementeret:
 - Blazor frontend med sider til brugere, posts, kommentarer og subforums
 - Forside med fremhævet post, og søgeside på `/search`
 - Login med JWT i både Web API og Blazor-frontend
-- Ejerskab: kun forfatteren eller en admin kan ændre og slette
+- Ejerskab: forfatteren, en admin, eller subforummets opretter for posts i eget subforum
 - Soft delete af brugere, så eksisterende posts og kommentarer bevares
 - Unit tests og integration tests
 - `EfcRepositories` med `AppContext`, navigation properties på entities, migrationen `initial` og databasen `app.db`
