@@ -1,9 +1,9 @@
 # DNP Assignment - ForumApp
-2026-09-05 (opdateret 2026-11-08)
+2026-09-05 (opdateret 2026-11-14)
 
 Dette repository indeholder en forum-applikation til kurset **DNP - .NET Programmering**. Projektet tager udgangspunkt i et Reddit-lignende forum, hvor brugere kan oprette posts, skrive kommentarer og organisere posts i subforums.
 
-Applikationen er bygget op over flere assignments: domænemodel og repositories, en Command Line Interface, filbaseret persistence, en Web API, en Blazor-frontend, som brugerne kan betjene forummet fra, og login med JWT. Entity Framework Core er sat op med en SQLite-database, men Web API'en kører stadig på de filbaserede repositories.
+Applikationen er bygget op over flere assignments: domænemodel og repositories, en Command Line Interface, filbaseret persistence, en Web API, en Blazor-frontend, login med JWT og Entity Framework Core med SQLite. Web API'en bruger EFC-repositories som persistence-lag.
 
 <a href="docs/screenshots/landing-page.png" target="_blank" rel="noopener">
   <img src="docs/screenshots/landing-page.png" alt="Forsiden i Blazor-frontenden" width="800">
@@ -80,7 +80,7 @@ DNP-Assignment-ForumAPP/
 │   ├── RepositoryContracts/     Interfaces for data-adgang
 │   ├── InMemoryRepositories/    Repositories baseret på lister + DataSeeder
 │   ├── FileRepository/          Repositories der gemmer data som JSON-filer
-│   ├── EfcRepositories/         AppContext, migrations og SQLite-databasen (under opbygning)
+│   ├── EfcRepositories/         AppContext, EFC-repositories, migrations og SQLite-database
 │   ├── ServiceContracts/        Interfaces for services
 │   ├── Services/                Forretningslogik, validering og mapping til DTO'er
 │   ├── CLI/                     Command Line Interface (Assignment 2)
@@ -268,13 +268,13 @@ Implementeret:
 - Forside med fremhævet post, og søgeside på `/search`
 - Login med JWT i både Web API og Blazor-frontend
 - Ejerskab: kun forfatteren eller en admin kan ændre og slette
+- Soft delete af brugere, så eksisterende posts og kommentarer bevares
 - Unit tests og integration tests
 - `EfcRepositories` med `AppContext`, navigation properties på entities, migrationen `initial` og databasen `app.db`
+- Web API'en er konfigureret til at bruge EFC-repositories
 
 Ikke implementeret endnu:
 
-- De fire EFC-repositories, og at skifte `Program.cs` over til dem
-- Soft delete af brugere — feltet `User.IsDeleted` findes, men bruges ikke endnu
 - Hashing af passwords
 
 </details>
